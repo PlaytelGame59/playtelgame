@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat app</title>
+</head>
+<body>
+
+    <h1>Chatting App</h1>
+    <input id="message" type="text" placeholder="search" />
+    <button id="sendBtn">send</button>
+    <div id="messagediv">message</div>
+
+</body>
+</html>
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+
+    // const socket = io()
+    // const sendBtn = document.getElementById('senBtn')
+    // const messageInput = document.getElementById('message')
+    // const allmessage = document.getElementById('messagediv')
+
+    // socket.on('message', (message) => {
+    //     const p = document.createElement("p")
+    //     p.innerText = message;
+    //     allmessage.appendChild(p)
+    // })
+
+    // sendBtn.addEventListener('click', e => {
+    //     const message = messageInput.value;
+    //     console.log(message)
+    //     socket.emit('use-message', message)
+    // })
+
+    const socket = io();
+    const sendBtn = document.getElementById('sendBtn'); // Corrected ID
+    const messageInput = document.getElementById('message');
+    const allmessage = document.getElementById('messagediv'); // Corrected ID
+
+    socket.on('message', (message) => {
+        const p = document.createElement("p");
+        p.innerText = message;
+        allmessage.appendChild(p);
+    });
+
+    sendBtn.addEventListener('click', (e) => {
+        const message = messageInput.value;
+        console.log(message);
+        socket.emit('user-message', message); // Corrected event name
+    });
+
+
+
+</script>
