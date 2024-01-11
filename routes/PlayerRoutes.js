@@ -3,7 +3,7 @@ const router = express.Router();
 const playerController = require('../controllers/PlayerController');
 
 router.post('/login', playerController.userLogin);
-router.post('/players/profile-image/save', playerController.addPlayerImage);
+router.post('/players/save-profile-image', playerController.addPlayerImage);
 router.post('/players/profile-image/get', playerController.getPlayerProfileImage);
 router.post('/players/details', playerController.getPlayerDetails);
 router.post('/players/update', playerController.updatePlayerDetails);
