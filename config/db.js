@@ -6,7 +6,4 @@ module.exports=function dbConnection(){
 mongoose.connect(dbURI)
     console.log("connected to database")
 }
-
-
-
-    
+ 
