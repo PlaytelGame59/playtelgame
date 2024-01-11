@@ -7,3 +7,4 @@ mongoose.connect(dbURI)
     console.log("connected to database")
 }
  
+// database 
