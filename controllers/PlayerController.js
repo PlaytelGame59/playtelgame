@@ -47,32 +47,6 @@ exports.userLogin = async function (req, res) {
   }
 };
 
-// const uploadImage = configMulter('playerImage/', [
-//     { name: 'player_image', maxCount: 1 }
-// ]);
-  
-// exports.addPlayerImage = function (req, res) {
-//     uploadImage(req, res, async function (err) {
-//         if (err instanceof multer.MulterError) {
-//         return res.status(500).json({ success: false, message: 'Multer error', error: err });
-//         } else if (err) {
-//         return res.status(500).json({ success: false, message: 'Error uploading file', error: err });
-//         }
-
-//         try {
-
-//         const player_image = req.files['player_image'] ? req.files['player_image'][0].path.replace(/^.*playerImage[\\/]/, 'playerImage/') : '';
-
-//         const newPlayerImage = new Players({ player_image });
-//         await newPlayerImage.save();
-
-//         res.status(201).json({ success: true, message: 'Player image uploaded successfully.', data: newPlayerImage });
-//         } catch (error) {
-//         console.error('Error uploading player image:', error);
-//         res.status(500).json({ success: false, message: 'Failed to upload player image.', error: error.message });
-//         }
-//     });
-// };
 
 const uploadImage = configMulter('playerImage/', [
   { name: 'player_image', maxCount: 1 }
@@ -80,42 +54,41 @@ const uploadImage = configMulter('playerImage/', [
 
 exports.addPlayerImage = async function (req, res) {
   uploadImage(req, res, async function (err) {
-      if (err instanceof multer.MulterError) {
-          return res.status(500).json({ success: false, message: 'Multer error', error: err });
-      } else if (err) {
-          return res.status(500).json({ success: false, message: 'Error uploading file', error: err });
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json({ success: false, message: 'Multer error', error: err });
+    } else if (err) {
+      return res.status(500).json({ success: false, message: 'Error uploading file', error: err });
+    }
+
+    try {
+      const player_id = req.body.player_id; // Corrected to use req.body.player_id
+
+      // Check if player_id is provided
+      if (!player_id) {
+        return res.status(400).json({ success: false, message: 'Player ID is required.' });
       }
 
-      try {
-          const player_id = req.body.player_id; // Assuming you're sending player_id in the request body
+      // Check if the player with the given player_id exists
+      const existingPlayer = await Players.findOne({ _id: player_id });
 
-          // Check if player_id is provided
-          if (!player_id) {
-              return res.status(400).json({ success: false, message: 'Player ID is required.' });
-          }
-
-          // Check if the player with the given player_id exists
-          const existingPlayer = await Players.findOne({ player_id });
-
-          if (!existingPlayer) {
-              return res.status(404).json({ success: false, message: 'Player not found.' });
-          }
-
-          const player_image = req.files['player_image'] ? req.files['player_image'][0].path.replace(/^.*playerImage[\\/]/, 'playerImage/') : '';
-
-          // Update the player's image
-          existingPlayer.player_image = player_image;
-
-          await existingPlayer.save();
-
-          res.status(200).json({ success: true, message: 'Player image updated successfully.', data: existingPlayer });
-      } catch (error) {
-          console.error('Error updating player image:', error);
-          res.status(500).json({ success: false, message: 'Failed to update player image.', error: error.message });
+      if (!existingPlayer) {
+        return res.status(404).json({ success: false, message: 'Player not found.' });
       }
+
+      const player_image = req.files['player_image'] ? req.files['player_image'][0].path.replace(/^.*playerImage[\\/]/, 'playerImage/') : '';
+
+      // Update the player's image
+      existingPlayer.player_image = player_image;
+
+      await existingPlayer.save();
+
+      res.status(200).json({ success: true, message: 'Player image updated successfully.', data: existingPlayer });
+    } catch (error) {
+      console.error('Error updating player image:', error);
+      res.status(500).json({ success: false, message: 'Failed to update player image.', error: error.message });
+    }
   });
 };
-
 
 exports.getPlayerProfileImage = async function (req, res) {
     try {
