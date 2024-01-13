@@ -283,20 +283,19 @@ exports.getPlayerWalletHistory = async function(req, res) {
   try {
     const { player_id } = req.body;
 
-    // Find player by player_id
-    const walletHistory = await Players.findById({ _id: player_id }); // Fix the syntax here
+    // Check if player_id exists in WithdrawDetails
+    const playerWithdrawals = await WithdrawDetails.find({ player_id });
 
-    if (!walletHistory) {
-      return res.status(200).json({ success: false, message: 'Wallet history not found.' });
+    if (!playerWithdrawals || playerWithdrawals.length === 0) {
+      return res.status(200).json({ success: false, message: 'Player does not have any transactions.' });
     }
 
-    res.status(200).json({ success: true, walletHistory });
+    res.status(200).json({ success: true, playerWithdrawals });
   } catch (error) {
-    console.error('Error fetching wallet history:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch wallet history.', error: error.message });
+    console.error('Error fetching player transactions:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch player transactions.', error: error.message });
   }
 };
-
 // get player'swallet history
 exports.getPlayerWalletHistory = async function(req, res) {
   try {
