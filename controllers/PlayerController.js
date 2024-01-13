@@ -279,39 +279,22 @@ exports.getWithdrawHistory = async function(req, res) {
   }
 };
 
-// exports.getPlayerWalletHistory = async function(req, res) {
-//   try {
-//     const { player_id } = req.body;
-
-//     // Find player by player_id
-//     const walletHistory = await Players.findById({ _id: player_id }); // Fix the syntax here
-
-//     if (!walletHistory) {
-//       return res.status(200).json({ success: false, message: 'Wallet history not found.' });
-//     }
-
-//     res.status(200).json({ success: true, walletHistory });
-//   } catch (error) {
-//     console.error('Error fetching wallet history:', error);
-//     res.status(500).json({ success: false, message: 'Failed to fetch wallet history.', error: error.message });
-//   }
-// };
 // get player'swallet history
 exports.getPlayerWalletHistory = async function(req, res) {
   try {
-      const { player_id } = req.body;
+    const { player_id } = req.body;
 
-      // Find player by player_id
-      const walletHistory = await Players.findById(player_id);
+    // Check if player_id exists in WithdrawDetails
+    const walletHistory = await WithdrawDetails.findOne({ player_id });
 
-      if (!walletHistory) {
-          return res.status(200).json({ success: false, message: 'wallet History not found.' });
-      }
+    if (!walletHistory) {
+      return res.status(200).json({ success: false, message: 'No wallet history for the specified user.' });
+    }
 
-      res.status(200).json({ success: true, walletHistory });
+    res.status(200).json({ success: true, walletHistory });
   } catch (error) {
-      console.error('Error fetching wallet history:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch wallet history.', error: error.message });
+    console.error('Error fetching wallet history:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch wallet history.', error: error.message });
   }
 };
 
