@@ -4,7 +4,7 @@ const cors = require('cors')
 const db = require("./config/db");
 
 const adminRoutes  = require('./routes/AdminRoutes')
-const playerRoutes  = require('./routes/PlayerRoutes')    
+const playerRoutes  = require('./routes/PlayerRoutes')   ;
 
 require("dotenv").config()
 
