@@ -12,7 +12,7 @@ router.post('/addFrdForFrd', playerController.sendFriendRequest);
 router.post('/is/register', playerController.isMobileRegistedred);
 router.post('/getFrdForFrd', playerController.getFriendList);
 router.post('/withdraw/request', playerController.sendWithdrawalRequest);
-router.post('/wallet/history', playerController.getPlayerWalletHistory);
+router.post('/wallethistory', playerController.getPlayerWalletHistory);
 router.post('/changeStatusFrdForFrd', playerController.changeFriendStatus);
 
 module.exports = router;

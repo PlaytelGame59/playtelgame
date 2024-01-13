@@ -283,7 +283,7 @@ exports.getWithdrawHistory = async function(req, res) {
 exports.getPlayerWalletHistory = async function(req, res) {
   try {
     const { player_id } = req.body;
-console.log("jdsadn");
+// console.log("jdsadn");
     // Check if player_id exists in WithdrawDetails
     const walletHistory = await WithdrawDetails.findOne({ player_id });
 
