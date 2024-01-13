@@ -23,6 +23,10 @@ const WithdrawDetailsSchema = new mongoose.Schema({
     },
     amt_withdraw: {
         type: String
+    },
+    trans_id: {
+        type: String,
+        default: ''
     }
 },{ collection: 'WithdrawDetails', timestamps: true });
 
