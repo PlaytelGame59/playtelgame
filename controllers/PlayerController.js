@@ -391,3 +391,35 @@ exports.topprize = async function (req, res) {
     }
 }
 
+// save bank details 
+exports.saveBankDetails = async function(req, res) {
+  try {
+    const { player_id, upi_id, bank_name, bank_account, bank_ifsc } = req.body;
+
+    const newBankDetails = new WithdrawDetails({
+      player_id, 
+      upi_id, 
+      bank_name, 
+      bank_account, 
+      bank_ifsc
+    });
+
+    await newBankDetails.save();
+
+    res.status(200).json({ success: true, message: 'Bank details of player saved successfully.', data: newBankDetails });
+  } catch (error) {
+    console.error('Error saving bank details:', error);
+    res.status(500).json({ success: false, message: 'Failed to saving bank details.', error: error.message });
+  }
+};
+
+exports.getNotificationList = async function(req,res) {
+  try {
+    const notificationList = await Tournament.find()
+
+    res.status(200).json({ success: true, notificationList });
+  } catch (error) {
+    console.error('Error fetching notification list:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch notification list', error: error.message });
+  }
+};
