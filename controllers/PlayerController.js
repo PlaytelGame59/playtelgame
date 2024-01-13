@@ -261,21 +261,39 @@ exports.updatePlayerDetails = async function(req, res) {
   }
 };
 
-exports.getWithdrawHistory = async function(req, res) {
+// exports.getWithdrawHistory = async function(req, res) {
+//   try {
+//       const { player_id } = req.body;
+
+//       // Find player by player_id
+//       const withdrawHistory = await WithdrawDetails.findById(player_id);
+
+//       if (!withdrawHistory) {
+//           return res.status(200).json({ success: false, message: 'Withdrawl History not found.' });
+//       }
+
+//       res.status(200).json({ success: true, withdrawHistory });
+//   } catch (error) {
+//       console.error('Error fetching withdrawl history:', error);
+//       res.status(500).json({ success: false, message: 'Failed to fetch withdrawl history.', error: error.message });
+//   }
+// };
+
+exports.getPlayerWalletHistory = async function(req, res) {
   try {
-      const { player_id } = req.body;
+    const { player_id } = req.body;
 
-      // Find player by player_id
-      const withdrawHistory = await WithdrawDetails.findById(player_id);
+    // Find player by player_id
+    const walletHistory = await Players.findById({ _id: player_id }); // Fix the syntax here
 
-      if (!withdrawHistory) {
-          return res.status(200).json({ success: false, message: 'Withdrawl History not found.' });
-      }
+    if (!walletHistory) {
+      return res.status(200).json({ success: false, message: 'Wallet history not found.' });
+    }
 
-      res.status(200).json({ success: true, withdrawHistory });
+    res.status(200).json({ success: true, walletHistory });
   } catch (error) {
-      console.error('Error fetching withdrawl history:', error);
-      res.status(500).json({ success: false, message: 'Failed to fetch withdrawl history.', error: error.message });
+    console.error('Error fetching wallet history:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch wallet history.', error: error.message });
   }
 };
 
