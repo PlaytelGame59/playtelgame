@@ -279,23 +279,23 @@ exports.updatePlayerDetails = async function(req, res) {
 //   }
 // };
 
-exports.getPlayerWalletHistory = async function(req, res) {
-  try {
-    const { player_id } = req.body;
+// exports.getPlayerWalletHistory = async function(req, res) {
+//   try {
+//     const { player_id } = req.body;
 
-    // Check if player_id exists in WithdrawDetails
-    const playerWithdrawals = await WithdrawDetails.find({ player_id });
+//     // Check if player_id exists in WithdrawDetails
+//     const playerWithdrawals = await WithdrawDetails.find({ player_id });
 
-    if (!playerWithdrawals || playerWithdrawals.length === 0) {
-      return res.status(200).json({ success: false, message: 'Player does not have any transactions.' });
-    }
+//     if (!playerWithdrawals || playerWithdrawals.length === 0) {
+//       return res.status(200).json({ success: false, message: 'Player does not have any transactions.' });
+//     }
 
-    res.status(200).json({ success: true, playerWithdrawals });
-  } catch (error) {
-    console.error('Error fetching player transactions:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch player transactions.', error: error.message });
-  }
-};
+//     res.status(200).json({ success: true, playerWithdrawals });
+//   } catch (error) {
+//     console.error('Error fetching player transactions:', error);
+//     res.status(500).json({ success: false, message: 'Failed to fetch player transactions.', error: error.message });
+//   }
+// };
 // get player'swallet history
 exports.getPlayerWalletHistory = async function(req, res) {
   try {
