@@ -9,6 +9,7 @@ const fs = require('fs');
 const configMulter = require('../configMulter');
 const Tournment = require('../models/Tournment'); 
 const RegisteredTournament = require('../models/RegisteredTournament');
+const ObjectId = require('mongodb').ObjectId;
 
 
 exports.userLogin = async function (req, res) {
@@ -432,6 +433,10 @@ exports.getWithdrawHistory = async function (req, res) {
     } = req.body;
 
     // Find player by player_id
+    if(!ObjectId.isValid(player_id))  return res.status(400).json({
+      success: false,
+      message: 'player_id is not valid'
+    });
     const withdrawHistory = await WithdrawDetails.findById(player_id);
 
     if (!withdrawHistory) {
