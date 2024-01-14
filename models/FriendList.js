@@ -6,16 +6,16 @@ const FriendListSchema = new mongoose.Schema({
         ref: 'Players'
     },
     email: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Players'
+        type: String,
+        default: ''
     },
     friend_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Players'
     },
     friend_email: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Players'
+        type: String,
+        default: ''
     },
     friend_status: {
         type: String,
