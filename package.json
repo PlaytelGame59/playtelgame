@@ -26,5 +26,10 @@
     "socket.io": "^4.7.2",
     "uuid": "^9.0.1"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "@babel/cli": "^7.23.4",
+    "@babel/core": "^7.23.7",
+    "@babel/preset-env": "^7.23.8"
+  }
 }

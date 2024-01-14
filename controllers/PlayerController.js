@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const multer = require('multer')
 const fs = require('fs');
-const configMulter = require('../configMulter')
+const configMulter = require('../configMulter');
+const Tournment = require('../models/Tournment'); 
+const RegisteredTournament = require('../models/RegisteredTournament');
 
 
 exports.userLogin = async function (req, res) {
@@ -672,4 +674,43 @@ exports.getNotificationList = async function (req, res) {
       error: error.message
     });
   }
+};
+
+// register tournament 
+
+exports.registerTournament = async function (req, res) {
+  try {
+  // Extract data from the request body
+  const { tournament_id, player_id, play_amount, bonus_amount, players_count } = req.body;
+
+  // Check if the tournament exists
+  const tournament = await Tournment.findById(tournament_id);
+  if (!tournament) {
+    return res.status(400).json({ success: false, message: 'Tournament not found.' });
+  }
+
+  // Check if the player exists
+  const player = await Players.findById(player_id);
+  if (!player) {
+    return res.status(400).json({ success: false, message: 'Player not found.' });
+  }
+
+  // Create a new record in the registeredTournament table
+  const registeredTournament = new RegisteredTournament({
+    tournament_id,
+    player_id,
+    play_amount, 
+    bonus_amount, 
+    players_count
+  });
+
+  // Save the record
+  await registeredTournament.save();
+
+  // Respond with success message
+  return res.status(200).json({ success: true, message: 'Player registered for the tournament.' });
+} catch (error) {
+  console.error('Error registering player for tournament:', error);
+  return res.status(500).json({ success: false, message: 'Failed to register player for tournament.', error: error.message });
+}
 };
