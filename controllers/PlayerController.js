@@ -456,7 +456,7 @@ exports.getWithdrawHistory = async function (req, res) {
 };
 
 // get player'swallet history
-exports.getPlayerWalletHistory = async function (req, res) {
+exports.getPlayerWithdrawHistory = async function (req, res) {
   try {
     const {
       player_id
