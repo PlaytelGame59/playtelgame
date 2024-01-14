@@ -171,6 +171,74 @@ function initializeSocketIO(io) {
     });
     
 // ******************************* join random room ******************************* 
+// function generateRoomCode() {
+//   const numbers = '0123456789';
+//   const codeLength = 6;
+//   let room_code = '';
+
+//   for (let i = 0; i < codeLength; i++) {
+//     const randomIndex = Math.floor(Math.random() * numbers.length);
+//     room_code += numbers.charAt(randomIndex);
+//   }
+
+//   return room_code;
+// }
+
+
+// socket.on("join_random_room", (data) => {
+//   const { user_id, user_name, prize, join_fee } = data;
+
+//   if (!chatRooms[room_code]) {
+//     io.to(room_code).emit("join_random_failed", {
+//       reason: reason,
+//       message: "Failed to join random room.",
+//     });
+//     return;
+//   }
+
+//   // Find a suitable chat room to join
+//   let foundRoom = null;
+//   for (const roomCode in chatRooms) {
+//     const room = chatRooms[roomCode];
+//     if (
+//       room.users.length < 4 &&
+//       room.prize === prize &&
+//       room.join_fee === join_fee &&
+//       !room.users.includes(user_id)
+//     ) {
+//       foundRoom = roomCode;
+//       break;
+//     }
+//   }
+
+//   if (!foundRoom) {
+//     const room_code = generateRoomCode(); 
+//     socket.emit("created_room", {
+//       room_code: room_code,
+//       createrID: user_id,
+//       createrName: user_name,
+//       message: `Room ${room_code} created successfully!`,
+//     });
+
+//     chatRooms[room_code] = {
+//       createrID: user_id,
+//       users: [user_id],
+//       prize: prize,
+//       join_fee: join_fee,
+//     };
+//   } else {
+//     chatRooms[foundRoom].users.push(user_id);
+//     const createrID = chatRooms[foundRoom].createrID;
+
+//     io.to(room_code).emit("join_room_success", {
+//       room_code: foundRoom,
+//       createrID: createrID,
+//       message: `Joined room ${foundRoom} successfully!`,
+//     });
+//   }
+// });
+
+// ******************************* join random room ******************************* 
 function generateRoomCode() {
   const numbers = '0123456789';
   const codeLength = 6;
@@ -184,17 +252,8 @@ function generateRoomCode() {
   return room_code;
 }
 
-
 socket.on("join_random_room", (data) => {
   const { user_id, user_name, prize, join_fee } = data;
-
-  if (!chatRooms[room_code]) {
-    io.to(room_code).emit("join_random_failed", {
-      reason: reason,
-      message: "Failed to join random room.",
-    });
-    return;
-  }
 
   // Find a suitable chat room to join
   let foundRoom = null;
@@ -230,7 +289,7 @@ socket.on("join_random_room", (data) => {
     chatRooms[foundRoom].users.push(user_id);
     const createrID = chatRooms[foundRoom].createrID;
 
-    io.to(room_code).emit("join_room_success", {
+    io.to(foundRoom).emit("join_room_success", {
       room_code: foundRoom,
       createrID: createrID,
       message: `Joined room ${foundRoom} successfully!`,
