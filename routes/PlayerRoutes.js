@@ -16,7 +16,7 @@ router.post('/withdraw/history', playerController.getWithdrawHistory);
 router.post('/changeStatusFrdForFrd', playerController.changeFriendStatus);
 router.post('/aadharUpload', playerController.playerAdharImage);
 router.post('/players/notification/delete', playerController.deleteNotification);
-router.post('/wallet/history', playerController.getPlayerWithdrawHistory);
+router.post('/wallet/history', playerController.getPlayerWalletHistory);
 router.get('/get/latest/winner', playerController.getLatestWinner);
 router.post('/tournament/registration', playerController.registerTournament);
 router.post('/wallet/load/amount', playerController.loadWalletAmount);
