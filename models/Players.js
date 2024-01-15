@@ -42,8 +42,8 @@ const PlayerSchema = new mongoose.Schema({
         default: ''
     },
     winning: {
-        type: String,
-        default: ''
+        type: Number,
+        default: 0
     },
     bonus: {
         type: String,

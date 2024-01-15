@@ -13,7 +13,7 @@ const NotificationSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    aadharImg: {
+    notificationImg: {
         type: String, 
         required: true,
     },

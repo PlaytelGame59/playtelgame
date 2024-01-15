@@ -17,5 +17,6 @@ router.post('/changeStatusFrdForFrd', playerController.changeFriendStatus);
 router.post('/aadharUpload', playerController.playerAdharImage);
 router.post('/players/notification/delete', playerController.deleteNotification);
 router.post('/wallet/history', playerController.getPlayerWithdrawHistory);
+router.get('/get/latest/winner', playerController.getLatestWinner);
 
 module.exports = router;

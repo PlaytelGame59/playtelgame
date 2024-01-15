@@ -733,6 +733,46 @@ exports.getAllNotification = async function(req,res) {
   }
 };
 
+// exports.getLatestWinner = async function(req,res) {
+//   try {
+//     // Find players and sort them based on the creation timestamp in descending order
+//     const latestWinners = await Players.find().sort({ createdAt: -1, winning: -1 }).limit(10); // Adjust the limit as needed
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Latest winners retrieved successfully.',
+//       data: latestWinners
+//     });
+//   } catch (error) {
+//     console.error('Error retrieving Latest winners:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to retrieve Latest winners.',
+//       error: error.message
+//     });
+//   }
+// };
+
+exports.getLatestWinner = async function(req, res) {
+  try {
+    // Find players and sort them based on the creation timestamp and winning value in descending order
+    const latestWinners = await Players.find().sort({ createdAt: -1, winning: -1 }).limit(10); // Adjust the limit as needed
+
+    res.status(200).json({
+      success: true,
+      message: 'Latest winners retrieved successfully.',
+      data: latestWinners
+    });
+  } catch (error) {
+    console.error('Error retrieving Latest winners:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve Latest winners.',
+      error: error.message
+    });
+  }
+};
+
 exports.deleteNotification = async function(req,res) {
   try {
     const notification_id = req.body.notification_id; // Assuming the key for skillId in the body is 'skillId'

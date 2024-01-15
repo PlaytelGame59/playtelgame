@@ -269,29 +269,29 @@ socket.on("join_random_room", (data) => {
     }
   }
 
-  if (!foundRoom) {
-    const room_code = generateRoomCode(); 
-    socket.emit("created_room", {
-      room_code: room_code,
-      createrID: user_id,
-      createrName: user_name,
-      message: `Room ${room_code} created successfully!`,
+  if (foundRoom) {
+    const room = chatRooms[foundRoom]
+    room.users.push(user_id)
+    room.playerCount++;
+    socket.join(foundRoom)
+
+    socket.emit("join_room_success", {
+      room_code: foundRoom,
+      createrID: room.createrID,
+      users_list: room.users,
+      players_count: room.playerCount,
+      message: `Joined room ${foundRoom} successfully!`,
     });
 
-    chatRooms[room_code] = {
-      createrID: user_id,
-      users: [user_id],
-      prize: prize,
-      join_fee: join_fee,
-    };
-  } else {
-    chatRooms[foundRoom].users.push(user_id);
-    const createrID = chatRooms[foundRoom].createrID;
-
-    io.to(foundRoom).emit("join_room_success", {
+    io.to(foundRoom).emit("on_joined_room", {
       room_code: foundRoom,
-      createrID: createrID,
-      message: `Joined room ${foundRoom} successfully!`,
+      user_id: user_id,
+      user_name: user_name,
+      message: "Another Player joined room successfully!",
+    });
+  } else {
+    socket.emit("join_random_failed", {
+      message: "Failed to join random room. Room does not exist.",
     });
   }
 });
