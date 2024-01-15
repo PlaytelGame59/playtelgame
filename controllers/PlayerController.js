@@ -753,10 +753,10 @@ exports.getAllNotification = async function(req,res) {
 //   }
 // };
 
-exports.getLatestWinner = async function(req, res) {
+exports.getLatestWinner = async function (req, res) {
   try {
     // Find players and sort them based on the creation timestamp and winning value in descending order
-    const latestWinners = await Players.find().sort({ createdAt: -1, winning: -1 }).limit(10); // Adjust the limit as needed
+    const latestWinners = await Players.find().sort({ winning: -1, createdAt: -1 });
 
     res.status(200).json({
       success: true,
