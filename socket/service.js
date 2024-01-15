@@ -257,15 +257,17 @@ socket.on("join_random_room", (data) => {
 
   // Find a suitable chat room to join
   let foundRoom = null;
-  for (let room in chatRooms) {
-    if (
-      room.users.length < 4 &&
-      room.prize === prize &&
-      room.join_fee === join_fee &&
-      !room.users.includes(user_id)
-    ) {
-      foundRoom = room;
-      break;
+  if (chatRooms && typeof chatRooms[Symbol.iterator] === 'function') {
+    for (let room in chatRooms) {
+      if (
+        room.users.length < 4 &&
+        room.prize === prize &&
+        room.join_fee === join_fee &&
+        !room.users.includes(user_id)
+      ) {
+        foundRoom = room;
+        break;
+      }
     }
   }
 
