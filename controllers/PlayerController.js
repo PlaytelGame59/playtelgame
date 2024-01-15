@@ -692,16 +692,16 @@ exports.registerTournament = async function (req, res) {
   const { tournament_id, player_id, play_amount, bonus_amount, players_count } = req.body;
 
   // Check if the tournament exists
-  const tournament = await Tournment.findById(tournament_id);
-  if (!tournament) {
-    return res.status(400).json({ success: false, message: 'Tournament not found.' });
-  }
+  // const tournament = await Tournment.findById(tournament_id);
+  // if (!tournament) {
+  //   return res.status(400).json({ success: false, message: 'Tournament not found.' });
+  // }
 
   // Check if the player exists
-  const player = await Players.findById(player_id);
-  if (!player) {
-    return res.status(400).json({ success: false, message: 'Player not found.' });
-  }
+  // const player = await Players.findById(player_id);
+  // if (!player) {
+  //   return res.status(400).json({ success: false, message: 'Player not found.' });
+  // }
 
   // Create a new record in the registeredTournament table
   const registeredTournament = new RegisteredTournament({
