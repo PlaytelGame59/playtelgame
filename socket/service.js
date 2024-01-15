@@ -264,7 +264,7 @@ socket.on("join_random_room", (data) => {
       room.join_fee === join_fee &&
       !room.users.includes(user_id)
     ) {
-      foundRoom = roomCode;
+      foundRoom = room;
       break;
     }
   }
