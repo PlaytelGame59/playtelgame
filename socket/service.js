@@ -15,14 +15,6 @@ function initializeSocketIO(io) {
         player_count
       } = data;
 
-      if (chatRooms[room_code]) {
-        socket.emit("create_room_failed", {
-          room_code: room_code,
-          message: "Failed to create room. Room already exists.",
-        });
-        return;
-      }
-
       if (!room_code || room_code.trim() === '') {
         socket.emit("create_room_failed", {
           room_code: room_code,
@@ -31,14 +23,27 @@ function initializeSocketIO(io) {
         return;
       }
 
+      if (chatRooms[room_code]) {
+        socket.emit("create_room_failed", {
+          room_code: room_code,
+          message: "Failed to create room. Room already exists.",
+        });
+        return;
+      }
+
       chatRooms[room_code] = {
-        users: [user_id],
+        users: [{
+          user_id: user_id,
+          user_name: user_name,
+          is_in_room: true
+        }],
         createrID: user_id,
         createrName: user_name,
         prize: prize,
         joinFee: join_fee,
         playerCount: 1,
-        maximumPlayer: player_count
+        maximumPlayer: player_count,
+        closed: false
       }
 
       socket.join(room_code)
@@ -71,19 +76,25 @@ function initializeSocketIO(io) {
         return;
       }
 
-      const room = chatRooms[room_code]
-      if (room.users.length == 4) {
+      if (chatRooms[room_code].users.length == 4) {
+        socket.emit("join_room_failed", {
+          room_code: room_code,
+          message: "Failed to join room. Room is full",
+        });
         return
       }
-      room.users.push(user_id)
-      room.playerCount++;
+      chatRooms[room_code].users.push({
+        user_id: user_id,
+        is_in_room: true
+      })
+      chatRooms[room_code].playerCount++;
       socket.join(room_code)
 
       socket.emit("join_room_success", {
         room_code: room_code,
-        createrID: room.createrID,
-        users_list: room.users,
-        players_count: room.playerCount,
+        createrID: chatRooms[room_code].createrID,
+        users_list: chatRooms[room_code].users,
+        players_count: chatRooms[room_code].playerCount,
         message: `Joined room ${room_code} successfully!`,
       });
 
@@ -93,6 +104,9 @@ function initializeSocketIO(io) {
         user_name: user_name,
         message: "Another Player joined room successfully!",
       });
+      if (chatRooms[room_code].players_count == 4) {
+        chatRooms[room_code].closed = true;
+      }
 
     });
 
@@ -104,9 +118,8 @@ function initializeSocketIO(io) {
         room_code
       } = data;
 
-      const room = chatRooms[room_code]
 
-      if (!room) {
+      if (!chatRooms[room_code]) {
         io.to(room_code).emit("add_bots_failed", {
           room_code: room_code,
           message: "Failed to add bots. bots does not exist.",
@@ -134,9 +147,8 @@ function initializeSocketIO(io) {
         room_code
       } = data;
 
-      const room = chatRooms[room_code]
 
-      if (!room) {
+      if (!chatRooms[room_code]) {
         io.to(room_code).emit("load_scene_failed", {
           room_code: room_code,
           message: "Failed to load_scene. loads does not exist.",
@@ -241,11 +253,13 @@ function initializeSocketIO(io) {
         return;
       }
 
-      const room = chatRooms[room_code];
+      function findUser(user) {
+        return user.user_id.equals(user_id) && user.is_in_room;
+      }
 
-      const userIndex = room.users.indexOf(user_id);
+      const is_user_available = chatRooms[room_code].users.find(findUser);
 
-      if (userIndex === -1) {
+      if (!is_user_available) {
         socket.emit("leave_room_failed", {
           user_id: user_id,
           user_name: user_name,
@@ -254,43 +268,46 @@ function initializeSocketIO(io) {
         return;
       }
 
-      // Check if the user has already left the room
-      if (room.users[userIndex].left) {
-        // If the user has already left, do not emit the event again
-        return;
-      }
+      const user_index = chatRooms[room_code].users.findIndex(findUser);
 
-      // Mark the user as left in the room
-      room.users[userIndex].left = true;
+      chatRooms[room_code].users[user_index].is_in_room = false;
 
       // Remove the user from the room
-      room.users.splice(userIndex, 1);
+      //const removed_user = chatRooms[room_code].users.splice(user_index, 1);
 
       // Emit a success event to acknowledge the user leaving the room
       io.to(room_code).emit("on_player_left_room", {
         room_code: room_code,
         user_id: user_id,
-        user_name: "Hare Ram", // Ensure this is defined and has a value
+        user_name: chatRooms[room_code].users[user_index].user_name, // Ensure this is defined and has a value
         reason: reason,
         message: "Left room successfully!",
       });
 
-      // Check remaining players in the room
-      const remainingPlayers = room.users.length;
+      const remainingPlayers = 0;
 
-      if (remainingPlayers === 0) {
+      for (let roomUser of chatRooms[room_code].users) {
+        if (roomUser.is_in_room)
+          remainingPlayers++;
+      }
+
+      if (remainingPlayers > 4) {
+        chatRooms[room_code].closed = false;
+      }
+
+      if (remainingPlayers == 0) {
         // Close the room if no players remaining
         delete chatRooms[room_code];
         socket.emit("on_room_close", {
           room_code: room_code,
           message: "Room closed due to no players remaining.",
         });
-      } else if (room.createrID === user_id) {
+      } else if (chatRooms[room_code].createrID.equals(user_id)) {
         // If the leaving user was the master, assign a new master from remaining players
-        room.createrID = room.users[0]; // Assign the first user in the list as the new master
+        room.createrID = chatRooms[room_code].users[remainingPlayers - remainingPlayers].user_id; // Assign the first user in the list as the new master
         io.to(room_code).emit("on_master_changed", {
           room_code: room_code,
-          createrID: room.createrID,
+          createrID: chatRooms[room_code].createrID,
           message: `New master assigned in room ${room_code}.`,
         });
       }
@@ -390,31 +407,36 @@ function initializeSocketIO(io) {
       // console.log(chatRooms)
       let foundRoom = null;
       if (chatRooms && typeof chatRooms[Symbol.iterator] === 'function') {
-        for (let room in chatRooms) {
-          console.log('yes')
+        const i = 0;
+        const room_codes = Object.keys(chatRooms);
+        for (let i = 0; i < room_codes.length; i++) {
+          console.log(chatRooms[room_codes[i]]);
           if (
-            room.users.length < 4 &&
-            room.prize === prize &&
-            room.join_fee === join_fee &&
-            !room.users.includes(user_id)
+            chatRooms[room_codes[i]].users.length < 4 &&
+            chatRooms[room_codes[i]].prize === prize &&
+            chatRooms[room_codes[i]].join_fee === join_fee &&
+            !chatRooms[room_codes[i]].users.includes(user_id)
           ) {
-            foundRoom = room;
+            foundRoom = room_codes[i];
             break;
           }
+          i++;
         }
       }
 
-      if (foundRoom) {
-        const room = chatRooms[foundRoom]
-        room.users.push(user_id)
-        room.playerCount++;
-        socket.join(foundRoom)
+      if (foundRoom != null) {
+        chatRooms[foundRoom].users.push({
+          user_id: user_id,
+          is_in_room: true
+        })
+        chatRooms[foundRoom].playerCount++;
+        socket.join(chatRooms[foundRoom])
 
         socket.emit("join_room_success", {
-          room_code: foundRoom,
-          createrID: room.createrID,
-          users_list: room.users,
-          players_count: room.playerCount,
+          room_code: chatRooms[foundRoom].room_code,
+          createrID: chatRooms[foundRoom].createrID,
+          users_list: chatRooms[foundRoom].users,
+          players_count: chatRooms[foundRoom].playerCount,
           message: `Joined room ${foundRoom} successfully!`,
         });
 
@@ -474,9 +496,12 @@ function initializeSocketIO(io) {
         return;
       }
 
+      function findUser(user) {
+        return user.user_id.equals(user_id) && user.is_in_room;
+      }
       // Check if the user is in the room
-      const userIndex = chatRooms[room_code].users.indexOf(user_id);
-      if (userIndex === -1) {
+      const userIndex = chatRooms[room_code].users.findIndex(findUser);
+      if (userIndex == -1) {
         socket.emit("pause_game_failed", {
           user_id: user_id,
           room_code: room_code,
@@ -518,9 +543,13 @@ function initializeSocketIO(io) {
         return;
       }
 
+      function findUser(user) {
+        return user.user_id.equals(user_id) && user.is_in_room;
+      }
+
       // Check if the user is in the room
-      const userIndex = chatRooms[room_code].users.indexOf(user_id);
-      if (userIndex === -1) {
+      const userIndex = chatRooms[room_code].users.findIndex(findUser);
+      if (userIndex == -1) {
         socket.emit("resume_game_failed", {
           user_id: user_id,
           room_code: room_code,
@@ -563,7 +592,7 @@ function initializeSocketIO(io) {
 
       // Update the turn for the specified user in the room
       chatRooms[room_code].turn = turn;
-
+      chatRooms[room_code].by_user_id = by_user_id;
       // Emit an event to acknowledge setting the turn
       io.to(room_code).emit("on_set_turn", {
         room_code: room_code,
