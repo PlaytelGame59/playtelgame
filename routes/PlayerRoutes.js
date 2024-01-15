@@ -18,5 +18,7 @@ router.post('/aadharUpload', playerController.playerAdharImage);
 router.post('/players/notification/delete', playerController.deleteNotification);
 router.post('/wallet/history', playerController.getPlayerWithdrawHistory);
 router.get('/get/latest/winner', playerController.getLatestWinner);
+router.post('/tournament/registration', playerController.registerTournament);
+router.post('/wallet/load/amount', playerController.loadWalletAmount);
 
 module.exports = router;

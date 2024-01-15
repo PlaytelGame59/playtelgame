@@ -11,6 +11,7 @@ const Tournment = require('../models/Tournment');
 const RegisteredTournament = require('../models/RegisteredTournament');
 const Notification = require('../models/Notification');
 const AdharKYC = require('../models/AdharKYC');
+const WalletHistory = require('../models/WalletHistory');
 const ObjectId = require('mongodb').ObjectId;
 
 
@@ -474,7 +475,7 @@ exports.getPlayerWithdrawHistory = async function (req, res) {
     })
     // console.log("jdsadn");
     // Check if player_id exists in WithdrawDetails
-    const walletHistory = await WithdrawDetails.findOne({
+    const walletHistory = await WalletHistory.findOne({
       player_id
     });
 
@@ -778,7 +779,7 @@ exports.deleteNotification = async function(req,res) {
     const notification_id = req.body.notification_id; // Assuming the key for skillId in the body is 'skillId'
 
     if (!notification_id || !mongoose.Types.ObjectId.isValid(notification_id)) {
-      return res.status(400).json({ success: false, message: 'Invalid Skill ID' });
+      return res.status(400).json({ success: false, message: 'Invalid notification ID' });
     }
 
     const deletedNotification = await Notification.findByIdAndDelete(notification_id);
@@ -868,3 +869,99 @@ exports.playerAdharImage = async function (req, res) {
   });
 };
 
+// exports.loadWalletAmount = async function (req, res) {
+//   try {
+//     const { player_id, field, loaded_amount } = req.body;
+
+//     // Validate input parameters
+//     if (!player_id || !field || !loaded_amount) {
+//       return res.status(400).json({ error: 'Invalid input parameters' });
+//     }
+
+//     // Validate the field
+//     const allowedFields = ['winning', 'bonus', 'wallet_amount'];
+//     if (!allowedFields.includes(field)) {
+//       return res.status(400).json({ error: 'Invalid field' });
+//     }
+
+//     // Update the specified field for the player and return the modified document
+//     const result = await Players.findOneAndUpdate(
+//       { _id: player_id },
+//       { $inc: { [field]: isNumeric(loaded_amount) ? loaded_amount : 0 } },
+//       { new: true }
+//     );
+    
+
+//     if (!result) {
+//       return res.status(404).json({ error: 'Player not found' });
+//     }
+
+//     res.json(result);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// };
+
+
+// exports.loadWalletAmount = async function (req, res) {
+//   try {
+//     // Extract data from the request body
+//     const { player_id, wallet_type, loaded_amount } = req.body;
+
+//     // Validate input parameters
+//     if (!player_id || !wallet_type || !loaded_amount) {
+//       return res.status(400).json({ error: 'Invalid input parameters' });
+//     }
+
+//     // Check if the player exists
+//     const player = await WalletHistory.findOne({ player_id });
+
+//     if (!player) {
+//       return res.status(400).json({ success: false, message: 'Player not found.' });
+//     }
+
+//     // Update the specified wallet_type for the player and return the modified document
+//     const result = await WalletHistory.findOneAndUpdate(
+//       { player_id },
+//       { $inc: { [wallet_type]: loaded_amount } },
+//       { new: true }
+//     );
+
+//     if (!result) {
+//       return res.status(404).json({ error: 'Player not found' });
+//     }
+
+//     res.json(result);
+//   } catch (error) {
+//     console.error('Error in loading amount for this player:', error);
+//     return res.status(500).json({ success: false, message: 'Failed to load amount for player.', error: error.message });
+//   }
+// };
+
+exports.loadWalletAmount = async function (req, res) {
+  try {
+    // Extract data from the request body
+    const { player_id, wallet_type, loaded_amount } = req.body;
+
+    // Validate input parameters
+    if (!player_id || !wallet_type || !loaded_amount) {
+      return res.status(400).json({ error: 'Invalid input parameters' });
+    }
+
+    // Create a new record in the WalletHistory table
+    const walletHistory = new WalletHistory({
+      player_id,
+      [wallet_type]: loaded_amount // Dynamically set the field based on wallet_type
+    });
+
+    // Save the record
+    await walletHistory.save();
+
+    // Respond with success message
+    return res.status(200).json({ success: true, message: 'Amount loaded for that player.' });
+  } catch (error) {
+    console.error('Error in loading amount for this player:', error);
+    return res.status(500).json({ success: false, message: 'Failed to load amount for player.', error: error.message });
+  }
+};
