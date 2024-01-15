@@ -141,7 +141,7 @@ function initializeSocketIO(io) {
     // ************************* leave Room *************************
 
     socket.on("leave_room", (data) => {
-      const { room_code, user_id, reason } = data;
+      const { room_code, user_name, user_id, reason } = data;
     
       if (!chatRooms[room_code]) {
         socket.emit("leave_room_failed", {
@@ -172,10 +172,11 @@ function initializeSocketIO(io) {
       io.to(room_code).emit("on_player_left_room", {
         room_code: room_code,
         user_id: user_id,
-        user_name: user_name,
+        user_name: "Hare Ram", // Ensure this is defined and has a value
         reason: reason,
         message: "Left room successfully!",
       });
+      
     
       // Check remaining players in the room
       const remainingPlayers = room.users.length;
