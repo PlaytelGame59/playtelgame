@@ -256,9 +256,11 @@ socket.on("join_random_room", (data) => {
   const { user_id, user_name, prize, join_fee } = data;
 
   // Find a suitable chat room to join
+  console.log(chatRooms)
   let foundRoom = null;
   if (chatRooms && typeof chatRooms[Symbol.iterator] === 'function') {
     for (let room in chatRooms) {
+      console.log('yes')
       if (
         room.users.length < 4 &&
         room.prize === prize &&
