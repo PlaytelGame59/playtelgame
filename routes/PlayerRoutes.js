@@ -14,5 +14,8 @@ router.post('/getFrdForFrd', playerController.getFriendList);
 router.post('/withdraw/request', playerController.sendWithdrawalRequest);
 router.post('/withdraw/history', playerController.getWithdrawHistory);
 router.post('/changeStatusFrdForFrd', playerController.changeFriendStatus);
+router.post('/aadharUpload', playerController.playerAdharImage);
+router.post('/players/notification/delete', playerController.deleteNotification);
+router.post('/wallet/history', playerController.getPlayerWithdrawHistory);
 
 module.exports = router;

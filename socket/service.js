@@ -257,8 +257,7 @@ socket.on("join_random_room", (data) => {
 
   // Find a suitable chat room to join
   let foundRoom = null;
-  for (const roomCode in chatRooms) {
-    const room = chatRooms[roomCode];
+  for (const room of chatRooms) {
     if (
       room.users.length < 4 &&
       room.prize === prize &&

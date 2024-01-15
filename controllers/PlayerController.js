@@ -9,6 +9,8 @@ const fs = require('fs');
 const configMulter = require('../configMulter');
 const Tournment = require('../models/Tournment'); 
 const RegisteredTournament = require('../models/RegisteredTournament');
+const Notification = require('../models/Notification');
+const AdharKYC = require('../models/AdharKYC');
 const ObjectId = require('mongodb').ObjectId;
 
 
@@ -719,3 +721,110 @@ exports.registerTournament = async function (req, res) {
   return res.status(500).json({ success: false, message: 'Failed to register player for tournament.', error: error.message });
 }
 };
+
+exports.getAllNotification = async function(req,res) {
+  try {
+    const notificationList = await Notification.find()
+
+    res.status(200).json({ success: true, notificationList });
+  } catch (error) {
+    console.error('Error fetching notification List:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch notification list', error: error.message });
+  }
+};
+
+exports.deleteNotification = async function(req,res) {
+  try {
+    const notification_id = req.body.notification_id; // Assuming the key for skillId in the body is 'skillId'
+
+    if (!notification_id || !mongoose.Types.ObjectId.isValid(notification_id)) {
+      return res.status(400).json({ success: false, message: 'Invalid Skill ID' });
+    }
+
+    const deletedNotification = await Notification.findByIdAndDelete(notification_id);
+
+    if (!deletedNotification) {
+      return res.status(404).json({ success: false, message: 'Notification not found.' });
+    }
+
+    res.status(200).json({ success: true, message: 'Notification deleted successfully', deletedNotification });
+  } catch (error) {
+    console.error('Error deleting Notification:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete Notification', error: error.message });
+  }
+};
+
+
+const uploadAdharImage = configMulter('playerAdahrImage/', [
+  {
+    name: 'aadhar_image',
+    maxCount: 1
+  }
+]);
+
+exports.playerAdharImage = async function (req, res) {
+  uploadAdharImage(req, res, async function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json({
+        success: false,
+        message: 'Multer error',
+        error: err
+      });
+    } else if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error uploading file',
+        error: err
+      });
+    }
+
+    try {
+      const { player_id, type } = req.body;
+
+      // Check if player_id is provided
+      if (!player_id || !type) {
+        return res.status(400).json({
+          success: false,
+          message: 'Player ID and type are required.'
+        });
+      }
+
+      // Check if the player with the given player_id exists
+      const existingPlayer = await Players.findOne({
+        _id: player_id
+      });
+
+      if (!existingPlayer) {
+        return res.status(404).json({
+          success: false,
+          message: 'Player not found.'
+        });
+      }
+
+      // Save the details in the AdharKYC table
+      const aadhar_image = req.files['aadhar_image'] ? req.files['aadhar_image'][0].path.replace(/^.*playerAdahrImage[\\/]/, 'playerAdahrImage/') : '';
+
+      const adharKYC = new AdharKYC({
+        player_id: player_id,
+        type: type,
+        aadhar_image: aadhar_image
+      });
+
+      await adharKYC.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'AdharKYC details saved successfully.',
+        data: adharKYC
+      });
+    } catch (error) {
+      console.error('Error saving AdharKYC details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to save AdharKYC details.',
+        error: error.message
+      });
+    }
+  });
+};
+
