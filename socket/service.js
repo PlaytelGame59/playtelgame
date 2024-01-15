@@ -140,65 +140,134 @@ function initializeSocketIO(io) {
     
     // ************************* leave Room *************************
 
-    socket.on("leave_room", (data) => {
-      const { room_code, user_name, user_id, reason } = data;
+    // socket.on("leave_room", (data) => {
+    //   const { room_code, user_name, user_id, reason } = data;
     
-      if (!chatRooms[room_code]) {
-        socket.emit("leave_room_failed", {
-          user_id: user_id,
-          user_name: user_name,
-          message: "Failed to leave room. Room does not exist.",
-        });
-        return;
-      }
+    //   if (!chatRooms[room_code]) {
+    //     socket.emit("leave_room_failed", {
+    //       user_id: user_id,
+    //       user_name: user_name,
+    //       message: "Failed to leave room. Room does not exist.",
+    //     });
+    //     return;
+    //   }
     
-      const room = chatRooms[room_code];
+    //   const room = chatRooms[room_code];
     
-      const userIndex = room.users.indexOf(user_id);
+    //   const userIndex = room.users.indexOf(user_id);
 
-      if (userIndex === -1) {
-        socket.emit("leave_room_failed", {
-          user_id: user_id,
-          user_name: user_name,
-          message: "Failed to leave room. User is not in the room.",
-        });
-        return;
-      }
+    //   if (userIndex === -1) {
+    //     socket.emit("leave_room_failed", {
+    //       user_id: user_id,
+    //       user_name: user_name,
+    //       message: "Failed to leave room. User is not in the room.",
+    //     });
+    //     return;
+    //   }
     
-      // Remove the user from the room
-      room.users.splice(userIndex, 1);
+    //   // Remove the user from the room
+    //   room.users.splice(userIndex, 1);
     
-      // Emit a success event to acknowledge the user leaving the room
-      io.to(room_code).emit("on_player_left_room", {
-        room_code: room_code,
-        user_id: user_id,
-        user_name: "Hare Ram", // Ensure this is defined and has a value
-        reason: reason,
-        message: "Left room successfully!",
-      });
+    //   // Emit a success event to acknowledge the user leaving the room
+    //   io.to(room_code).emit("on_player_left_room", {
+    //     room_code: room_code,
+    //     user_id: user_id,
+    //     user_name: "Hare Ram", // Ensure this is defined and has a value
+    //     reason: reason,
+    //     message: "Left room successfully!",
+    //   });
       
     
-      // Check remaining players in the room
-      const remainingPlayers = room.users.length;
+    //   // Check remaining players in the room
+    //   const remainingPlayers = room.users.length;
     
-      if (remainingPlayers === 0) {
-        // Close the room if no players remaining
-        delete chatRooms[room_code];
-        socket.emit("on_room_close", {
-          room_code: room_code,
-          message: "Room closed due to no players remaining.",
-        });
-      } else if (room.createrID === user_id) {
-        // If the leaving user was the master, assign a new master from remaining players
-        room.createrID = room.users[0]; // Assign the first user in the list as the new master
-        io.to(room_code).emit("on_master_changed", {
-          room_code: room_code,
-          createrID: room.createrID,
-          message: `New master assigned in room ${room_code}.`,
-        });
-      }
+    //   if (remainingPlayers === 0) {
+    //     // Close the room if no players remaining
+    //     delete chatRooms[room_code];
+    //     socket.emit("on_room_close", {
+    //       room_code: room_code,
+    //       message: "Room closed due to no players remaining.",
+    //     });
+    //   } else if (room.createrID === user_id) {
+    //     // If the leaving user was the master, assign a new master from remaining players
+    //     room.createrID = room.users[0]; // Assign the first user in the list as the new master
+    //     io.to(room_code).emit("on_master_changed", {
+    //       room_code: room_code,
+    //       createrID: room.createrID,
+    //       message: `New master assigned in room ${room_code}.`,
+    //     });
+    //   }
+    // });
+
+    
+    // ************************* leave Room *************************
+socket.on("leave_room", (data) => {
+  const { room_code, user_name, user_id, reason } = data;
+
+  if (!chatRooms[room_code]) {
+    socket.emit("leave_room_failed", {
+      user_id: user_id,
+      user_name: user_name,
+      message: "Failed to leave room. Room does not exist.",
     });
-    
+    return;
+  }
+
+  const room = chatRooms[room_code];
+
+  const userIndex = room.users.indexOf(user_id);
+
+  if (userIndex === -1) {
+    socket.emit("leave_room_failed", {
+      user_id: user_id,
+      user_name: user_name,
+      message: "Failed to leave room. User is not in the room.",
+    });
+    return;
+  }
+
+  // Check if the user has already left the room
+  if (room.users[userIndex].left) {
+    // If the user has already left, do not emit the event again
+    return;
+  }
+
+  // Mark the user as left in the room
+  room.users[userIndex].left = true;
+
+  // Remove the user from the room
+  room.users.splice(userIndex, 1);
+
+  // Emit a success event to acknowledge the user leaving the room
+  io.to(room_code).emit("on_player_left_room", {
+    room_code: room_code,
+    user_id: user_id,
+    user_name: "Hare Ram", // Ensure this is defined and has a value
+    reason: reason,
+    message: "Left room successfully!",
+  });
+
+  // Check remaining players in the room
+  const remainingPlayers = room.users.length;
+
+  if (remainingPlayers === 0) {
+    // Close the room if no players remaining
+    delete chatRooms[room_code];
+    socket.emit("on_room_close", {
+      room_code: room_code,
+      message: "Room closed due to no players remaining.",
+    });
+  } else if (room.createrID === user_id) {
+    // If the leaving user was the master, assign a new master from remaining players
+    room.createrID = room.users[0]; // Assign the first user in the list as the new master
+    io.to(room_code).emit("on_master_changed", {
+      room_code: room_code,
+      createrID: room.createrID,
+      message: `New master assigned in room ${room_code}.`,
+    });
+  }
+});
+
 // ******************************* join random room ******************************* 
 // function generateRoomCode() {
 //   const numbers = '0123456789';
