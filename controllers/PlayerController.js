@@ -965,3 +965,29 @@ exports.loadWalletAmount = async function (req, res) {
     return res.status(500).json({ success: false, message: 'Failed to load amount for player.', error: error.message });
   }
 };
+
+exports.getTournamentDetails = async function (req, res) {
+  try {
+    // Extract data from the request body
+    const { player_id, tournament_id } = req.body;
+
+    // Validate input parameters
+    if (!player_id || !tournament_id) {
+      return res.status(400).json({ error: 'Invalid input parameters' });
+    }
+
+    // Find data in the RegisteredTournament table based on player_id and tournament_id
+    const data = await RegisteredTournament.findOne({ player_id, tournament_id });
+
+    // Check if data is found
+    if (!data) {
+      return res.status(404).json({ success: false, message: 'Data not found for the provided player_id and tournament_id' });
+    }
+
+    // Respond with the retrieved data
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error('Error in getting registered tournament data:', error);
+    return res.status(500).json({ success: false, message: 'Failed to get registered tournament data.', error: error.message });
+  }
+};

@@ -110,6 +110,34 @@ function initializeSocketIO(io) {
 
     });
     
+    //*************************** load scene ************************
+    // ************************* Add bots *************************
+
+    socket.on("load_scene", (data) => {
+      const { room_code } = data;
+
+      const room = chatRooms[room_code]
+
+      if (!room) {
+        io.to(room_code).emit("load_scene_failed", {
+          room_code: room_code,
+          message: "Failed to load_scene. loads does not exist.",
+        });
+        return;
+      }
+
+      socket.emit("load_scene_success", {
+        room_code: room_code,
+        message: "Bots added successfully!",
+      });
+
+      io.to(room_code).emit("on_load_scene", {
+        room_code: room_code,
+        message: "load scene added successfully!",
+      });
+
+    });
+    
     // ************************* leave Room *************************
 
     socket.on("leave_room", (data) => {
