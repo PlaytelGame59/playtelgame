@@ -317,7 +317,7 @@ function initializeSocketIO(io) {
         socket.emit("leave_room_failed", {
           user_id: user_id,
           user_name: user_name,
-          message: "Failed to leave room. User is not in the room.",
+          message: "Something went wrong. Failed to leave room, please see the error message",
           error: e.message,
         });
         return;
