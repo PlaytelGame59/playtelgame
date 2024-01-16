@@ -232,84 +232,95 @@ function initializeSocketIO(io) {
 
     // ************************* leave Room *************************
     socket.on("leave_room", (data) => {
-      const {
-        room_code,
-        user_name,
-        user_id,
-        reason
-      } = data;
-      console.log(data.room_code)
-      if (!chatRooms[room_code]) {
-        console.log({
+      try {
+        const {
+          room_code,
+          user_name,
+          user_id,
+          reason
+        } = data;
+        console.log(data.room_code)
+        if (!chatRooms[room_code]) {
+          console.log({
+            user_id: user_id,
+            user_name: user_name,
+            message: "Failed to leave room. Room does not exist.",
+          })
+          socket.emit("leave_room_failed", {
+            user_id: user_id,
+            user_name: user_name,
+            message: "Failed to leave room. Room does not exist.",
+          });
+          return;
+        }
+
+        function findUser(user) {
+          return user.user_id == user_id && user.is_in_room;
+        }
+
+        const is_user_available = chatRooms[room_code].users.find(findUser);
+
+        if (!is_user_available) {
+          socket.emit("leave_room_failed", {
+            user_id: user_id,
+            user_name: user_name,
+            message: "Failed to leave room. User is not in the room.",
+          });
+          return;
+        }
+
+        const user_index = chatRooms[room_code].users.findIndex(findUser);
+
+        chatRooms[room_code].users[user_index].is_in_room = false;
+
+        // Remove the user from the room
+        //const removed_user = chatRooms[room_code].users.splice(user_index, 1);
+
+        // Emit a success event to acknowledge the user leaving the room
+        io.to(room_code).emit("on_player_left_room", {
+          room_code: room_code,
           user_id: user_id,
-          user_name: user_name,
-          message: "Failed to leave room. Room does not exist.",
-        })
-        socket.emit("leave_room_failed", {
-          user_id: user_id,
-          user_name: user_name,
-          message: "Failed to leave room. Room does not exist.",
+          user_name: chatRooms[room_code].users[user_index].user_name, // Ensure this is defined and has a value
+          reason: reason,
+          message: "Left room successfully!",
         });
-        return;
-      }
 
-      function findUser(user) {
-        return user.user_id.equals(user_id) && user.is_in_room;
-      }
+        const remainingPlayers = 0;
 
-      const is_user_available = chatRooms[room_code].users.find(findUser);
+        for (let roomUser of chatRooms[room_code].users) {
+          if (roomUser.is_in_room)
+            remainingPlayers++;
+        }
 
-      if (!is_user_available) {
+        if (remainingPlayers > 4) {
+          chatRooms[room_code].closed = false;
+        }
+
+        if (remainingPlayers == 0) {
+          // Close the room if no players remaining
+          delete chatRooms[room_code];
+          socket.emit("on_room_close", {
+            room_code: room_code,
+            message: "Room closed due to no players remaining.",
+          });
+        } else if (chatRooms[room_code].createrID == user_id) {
+          // If the leaving user was the master, assign a new master from remaining players
+          room.createrID = chatRooms[room_code].users[remainingPlayers - remainingPlayers].user_id; // Assign the first user in the list as the new master
+          io.to(room_code).emit("on_master_changed", {
+            room_code: room_code,
+            createrID: chatRooms[room_code].createrID,
+            message: `New master assigned in room ${room_code}.`,
+          });
+        }
+      } catch (e) {
+        console.error(e)
         socket.emit("leave_room_failed", {
           user_id: user_id,
           user_name: user_name,
           message: "Failed to leave room. User is not in the room.",
+          error: e.message,
         });
         return;
-      }
-
-      const user_index = chatRooms[room_code].users.findIndex(findUser);
-
-      chatRooms[room_code].users[user_index].is_in_room = false;
-
-      // Remove the user from the room
-      //const removed_user = chatRooms[room_code].users.splice(user_index, 1);
-
-      // Emit a success event to acknowledge the user leaving the room
-      io.to(room_code).emit("on_player_left_room", {
-        room_code: room_code,
-        user_id: user_id,
-        user_name: chatRooms[room_code].users[user_index].user_name, // Ensure this is defined and has a value
-        reason: reason,
-        message: "Left room successfully!",
-      });
-
-      const remainingPlayers = 0;
-
-      for (let roomUser of chatRooms[room_code].users) {
-        if (roomUser.is_in_room)
-          remainingPlayers++;
-      }
-
-      if (remainingPlayers > 4) {
-        chatRooms[room_code].closed = false;
-      }
-
-      if (remainingPlayers == 0) {
-        // Close the room if no players remaining
-        delete chatRooms[room_code];
-        socket.emit("on_room_close", {
-          room_code: room_code,
-          message: "Room closed due to no players remaining.",
-        });
-      } else if (chatRooms[room_code].createrID.equals(user_id)) {
-        // If the leaving user was the master, assign a new master from remaining players
-        room.createrID = chatRooms[room_code].users[remainingPlayers - remainingPlayers].user_id; // Assign the first user in the list as the new master
-        io.to(room_code).emit("on_master_changed", {
-          room_code: room_code,
-          createrID: chatRooms[room_code].createrID,
-          message: `New master assigned in room ${room_code}.`,
-        });
       }
     });
 
@@ -497,7 +508,7 @@ function initializeSocketIO(io) {
       }
 
       function findUser(user) {
-        return user.user_id.equals(user_id) && user.is_in_room;
+        return user.user_id == user_id && user.is_in_room;
       }
       // Check if the user is in the room
       const userIndex = chatRooms[room_code].users.findIndex(findUser);
@@ -544,7 +555,7 @@ function initializeSocketIO(io) {
       }
 
       function findUser(user) {
-        return user.user_id.equals(user_id) && user.is_in_room;
+        return user.user_id == user_id && user.is_in_room;
       }
 
       // Check if the user is in the room
