@@ -167,11 +167,40 @@ exports.getPlayerProfileImage = async function (req, res) {
   }
 };
 
+// exports.getPlayerDetails = async function (req, res) {
+//   try {
+//     const {
+//       player_id
+//     } = req.body;
+
+//     // Find player by player_id
+//     const player = await Players.findById(player_id).exec();
+
+//     if (!player) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Player not found.'
+//       });
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       player
+//     });
+//   } catch (error) {
+//     console.error('Error fetching player details:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch player details.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
 exports.getPlayerDetails = async function (req, res) {
   try {
-    const {
-      player_id
-    } = req.body;
+    const { player_id } = req.body;
 
     // Find player by player_id
     const player = await Players.findById(player_id).exec();
@@ -183,10 +212,37 @@ exports.getPlayerDetails = async function (req, res) {
       });
     }
 
-    res.status(200).json({
+    // Construct the desired response format
+    const response = {
       success: true,
-      player
-    });
+      player: {
+        _id: player._id,
+        first_name: player.first_name,
+        mobile: player.mobile,
+        join_code: player.join_code,
+        no_of_loose: player.no_of_loose,
+        no_of_total_win: player.no_of_total_win,
+        banned: player.banned,
+      },
+      wallet: {
+        current_amount: player.wallet_amount || 0,
+      },
+      winning_wallet: {
+        current_amount: player.winning_amount || 0,
+      },
+      bonus_wallet: {
+        current_amount: player.bonus_ammount || 0,
+      },
+      bot: {
+        bot_status: 1, // You can update this based on your logic
+      },
+      app: {
+        version_control: "1.0", // Update with your actual version
+        joining_link: "https://www.google.com", // Update with your landing page link
+      },
+    };
+
+    res.status(200).json(response);
   } catch (error) {
     console.error('Error fetching player details:', error);
     res.status(500).json({
@@ -196,7 +252,6 @@ exports.getPlayerDetails = async function (req, res) {
     });
   }
 };
-
 
 exports.updatePlayerDetails = async function (req, res) {
   try {
