@@ -7,7 +7,7 @@ require('dotenv').config();
 const multer = require('multer')
 const fs = require('fs');
 const configMulter = require('../configMulter');
-const Tournment = require('../models/Tournment');
+const Tournament = require('../models/tournament');
 const RegisteredTournament = require('../models/RegisteredTournament');
 const Notification = require('../models/Notification');
 const AdharKYC = require('../models/AdharKYC');
@@ -208,6 +208,7 @@ exports.getPlayerDetails = async function (req, res) {
     if (!player) {
       return res.status(404).json({
         success: false,
+
         message: 'Player not found.'
       });
     }
@@ -726,7 +727,7 @@ exports.saveBankDetails = async function (req, res) {
 
 exports.getNotificationList = async function (req, res) {
   try {
-    const notificationList = await Tournament.find()
+    const notificationList = await Notification.find()
 
     res.status(200).json({
       success: true,
@@ -756,16 +757,16 @@ exports.registerTournament = async function (req, res) {
     } = req.body;
 
     // Check if the tournament exists
-    // const tournament = await Tournment.findById(tournament_id);
-    // if (!tournament) {
-    //   return res.status(400).json({ success: false, message: 'Tournament not found.' });
-    // }
+    const tournament = await Tournament.findById(tournament_id);
+    if (!tournament) {
+      return res.status(400).json({ success: false, message: 'Tournament not found.' });
+    }
 
     // Check if the player exists
-    // const player = await Players.findById(player_id);
-    // if (!player) {
-    //   return res.status(400).json({ success: false, message: 'Player not found.' });
-    // }
+    const player = await Players.findById(player_id);
+    if (!player) {
+      return res.status(400).json({ success: false, message: 'Player not found.' });
+    }
 
     // Create a new record in the registeredTournament table
     const registeredTournament = new RegisteredTournament({
@@ -781,9 +782,10 @@ exports.registerTournament = async function (req, res) {
 
     // Respond with success message
     return res.status(200).json({
-      success: true,
-      message: 'Player registered for the tournament.'
-    });
+      "success": true,
+      "operator": "creator", 
+      "room_no": "736453"
+  });
   } catch (error) {
     console.error('Error registering player for tournament:', error);
     return res.status(500).json({
@@ -1250,6 +1252,37 @@ exports.getTournamentDetails = async function (req, res) {
     return res.status(500).json({
       success: false,
       message: 'Failed to get registered tournament data.',
+      error: error.message
+    });
+  }
+};
+
+exports.getTournamentList =async function (req,res) {
+  try {
+    const tournaments = await Tournament.find({});
+
+    const formattedTournaments = tournaments.map(tournament => ({
+      id: tournament._id,
+      tournament_name: tournament.tournamentName,
+      bet_amount: tournament.betAmount,
+      no_players: tournament.noPlayers,
+      no_of_winners: tournament.winnerCount,
+      tournament_interval: tournament.tournament_interval,
+      four_player_winning_1: tournament.winningAmount1,
+      four_player_winning_2: tournament.winningAmount2,
+      four_player_winning_3: tournament.winningAmount3,
+      two_player_winning: tournament.winningAmount // Adjust this based on your schema
+    }));
+
+    res.status(200).json({
+      success: true,
+      data: formattedTournaments
+    });
+  } catch (error) {
+    console.error('Error fetching tournaments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch tournaments.',
       error: error.message
     });
   }

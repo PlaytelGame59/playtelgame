@@ -1,6 +1,6 @@
 const { AdminModel } = require('../models/AdminModel');
 const Banners = require('../models/Banners');
-const Tournament = require('../models/Tournment');
+const Tournament = require('../models/tournament');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const configMulter = require('../configMulter');
