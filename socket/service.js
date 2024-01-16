@@ -232,14 +232,14 @@ function initializeSocketIO(io) {
 
     // ************************* leave Room *************************
     socket.on("leave_room", (data) => {
+      const {
+        room_code,
+        user_name,
+        user_id,
+        reason
+      } = data;
+      console.log(data.room_code)
       try {
-        const {
-          room_code,
-          user_name,
-          user_id,
-          reason
-        } = data;
-        console.log(data.room_code)
         if (!chatRooms[room_code]) {
           console.log({
             user_id: user_id,
