@@ -211,7 +211,7 @@ exports.getPlayerDetails = async function (req, res) {
         message: 'Player not found.'
       });
     }
-
+console.log("abc");
     // Construct the desired response format
     const response = {
       success: true,
@@ -535,7 +535,7 @@ exports.getPlayerWalletHistory = async function (req, res) {
       player_id: player_id
     });
 
-    console.log(walletHistory)
+    // console.log(walletHistory)
 
     if (!walletHistory) {
       return res.status(200).json({
@@ -965,79 +965,178 @@ exports.playerAdharImage = async function (req, res) {
   });
 };
 
+
 // exports.loadWalletAmount = async function (req, res) {
 //   try {
-//     const { player_id, field, loaded_amount } = req.body;
+//     // Extract data from the request body
+//     const {
+//       player_id,
+//       wallet_type,
+//       loaded_amount,
+//       type,
+//       notes
+//     } = req.body;
 
 //     // Validate input parameters
-//     if (!player_id || !field || !loaded_amount) {
-//       return res.status(400).json({ error: 'Invalid input parameters' });
+//     if (!player_id || !ObjectId.isValid(player_id) || !wallet_type || !loaded_amount) {
+//       return res.status(400).json({
+//         error: 'Invalid input parameters'
+//       });
 //     }
-
-//     // Validate the field
-//     const allowedFields = ['winning', 'bonus', 'wallet_amount'];
-//     if (!allowedFields.includes(field)) {
-//       return res.status(400).json({ error: 'Invalid field' });
+//     const player = await Players.findOne({
+//       _id: player_id,
+//       // status: "ACTIVE"
+//     }).exec();
+//     if (!player) {
+//       return res.status(404).json({
+//         error: 'Player not found with the id: ' + player_id
+//       });
 //     }
+//     // Create a new record in the WalletHistory table
+//     const walletHistory = new WalletHistory({
+//       player_id: player_id,
+//       wallet_type: wallet_type,
+//       amount: loaded_amount || 0, // Dynamically set the field based on wallet_type,
+//       type: type || "",
+//       notes: notes || ""
+//     });
 
-//     // Update the specified field for the player and return the modified document
-//     const result = await Players.findOneAndUpdate(
-//       { _id: player_id },
-//       { $inc: { [field]: isNumeric(loaded_amount) ? loaded_amount : 0 } },
-//       { new: true }
-//     );
+//     // Save the record
+//     /**
+//      * PLAY_BALANCE: user can add the money IN wallet_amount, and can use to play, bit
+//      * WINNING_BALANCE: Won ammount bit, user can widthraw the amount
+//      * 
+//      */
+//     await walletHistory.save();
 
+//     switch (wallet_type.toUpperCase()) {
+//       case "PLAY_BALANCE":
+//         const wallet_amount = Number(player.wallet_amount);
+//         if (type.toUpperCase() == "DEBIT") {
+//           player.wallet_amount = wallet_amount - Number(loaded_amount)
+//         } else {
+//           player.wallet_amount = wallet_amount + Number(loaded_amount);
+//         }
+//         break;
+//       case "WINNING_BALANCE":
+//         const winning_amount = Number(player.winning_amount);
+//         if (type.toUpperCase() == "DEBIT") {
+//           player.winning_amount = winning_amount - Number(loaded_amount)
+//         } else {
+//           player.winning_amount = winning_amount + Number(loaded_amount);
+//         }
+//         break;
 
-//     if (!result) {
-//       return res.status(404).json({ error: 'Player not found' });
+//       case "BONUS_BALANCE":
+//         const bonus_ammount = Number(player.bonus_ammount);
+//         if (type.toUpperCase() == "DEBIT") {
+//           player.bonus_ammount = bonus_ammount - Number(loaded_amount)
+//         } else {
+//           player.bonus_ammount = bonus_ammount + Number(loaded_amount);
+//         }
+//         break;
 //     }
+//     const upldated = await Players.findOneAndUpdate({
+//       _id: player_id
+//     }, player).exec();
 
-//     res.json(result);
+//     upldated ? res.status(200).json({
+//       success: true,
+//       message: 'Amount loaded for that player.'
+//     }) : res.status(500).json({
+//       success: false,
+//       message: 'Failed to load amount for player.',
+//       error: error.message
+//     });
 //   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ error: 'Internal Server Error' });
+//     console.error('Error in loading amount for this player:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to load amount for player.',
+//       error: error.message
+//     });
 //   }
 // };
 
 
 // exports.loadWalletAmount = async function (req, res) {
 //   try {
-//     // Extract data from the request body
-//     const { player_id, wallet_type, loaded_amount } = req.body;
+//     const {
+//       player_id,
+//       wallet_type,
+//       loaded_amount,
+//       type,
+//       notes
+//     } = req.body;
 
-//     // Validate input parameters
-//     if (!player_id || !wallet_type || !loaded_amount) {
-//       return res.status(400).json({ error: 'Invalid input parameters' });
+//     if (!player_id || !ObjectId.isValid(player_id) || !wallet_type || !loaded_amount) {
+//       return res.status(400).json({
+//         error: 'Invalid input parameters'
+//       });
 //     }
 
-//     // Check if the player exists
-//     const player = await WalletHistory.findOne({ player_id });
+//     const player = await Players.findOne({
+//       _id: player_id,
+//       // status: "ACTIVE"
+//     }).exec();
 
 //     if (!player) {
-//       return res.status(400).json({ success: false, message: 'Player not found.' });
+//       return res.status(404).json({
+//         error: 'Player not found with the id: ' + player_id
+//       });
 //     }
 
-//     // Update the specified wallet_type for the player and return the modified document
-//     const result = await WalletHistory.findOneAndUpdate(
-//       { player_id },
-//       { $inc: { [wallet_type]: loaded_amount } },
-//       { new: true }
-//     );
+//     const walletHistory = new WalletHistory({
+//       player_id: player_id,
+//       wallet_type: wallet_type,
+//       amount: loaded_amount || 0,
+//       type: type || "",
+//       notes: notes || ""
+//     });
 
-//     if (!result) {
-//       return res.status(404).json({ error: 'Player not found' });
+//     await walletHistory.save();
+
+//     switch (wallet_type.toUpperCase()) {
+//       case "PLAY_BALANCE":
+//         player.wallet_amount += (type.toUpperCase() === "DEBIT") ? -Number(loaded_amount) : Number(loaded_amount);
+//         break;
+//       case "WINNING_BALANCE":
+//         player.winning_amount += (type.toUpperCase() === "DEBIT") ? -Number(loaded_amount) : Number(loaded_amount);
+//         break;
+//       case "BONUS_BALANCE":
+//         player.bonus_ammount += (type.toUpperCase() === "DEBIT") ? -Number(loaded_amount) : Number(loaded_amount);
+//         break;
 //     }
 
-//     res.json(result);
+//     const updatedPlayer = await Players.findOneAndUpdate({
+//       _id: player_id
+//     }, player, {
+//       new: true
+//     }).exec();
+
+//     if (updatedPlayer) {
+//       return res.status(200).json({
+//         success: true,
+//         message: 'Amount loaded for that player.'
+//       });
+//     } else {
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Failed to load amount for player.'
+//       });
+//     }
 //   } catch (error) {
 //     console.error('Error in loading amount for this player:', error);
-//     return res.status(500).json({ success: false, message: 'Failed to load amount for player.', error: error.message });
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to load amount for player.',
+//       error: error.message
+//     });
 //   }
 // };
 
 exports.loadWalletAmount = async function (req, res) {
   try {
-    // Extract data from the request body
     const {
       player_id,
       wallet_type,
@@ -1046,77 +1145,62 @@ exports.loadWalletAmount = async function (req, res) {
       notes
     } = req.body;
 
-    // Validate input parameters
     if (!player_id || !ObjectId.isValid(player_id) || !wallet_type || !loaded_amount) {
       return res.status(400).json({
         error: 'Invalid input parameters'
       });
     }
+
     const player = await Players.findOne({
       _id: player_id,
       // status: "ACTIVE"
     }).exec();
+
     if (!player) {
       return res.status(404).json({
         error: 'Player not found with the id: ' + player_id
       });
     }
-    // Create a new record in the WalletHistory table
+
     const walletHistory = new WalletHistory({
       player_id: player_id,
       wallet_type: wallet_type,
-      amount: loaded_amount || 0, // Dynamically set the field based on wallet_type,
+      amount: loaded_amount || 0,
       type: type || "",
       notes: notes || ""
     });
 
-    // Save the record
-    /**
-     * PLAY_BALANCE: user can add the money IN wallet_amount, and can use to play, bit
-     * WINNING_BALANCE: Won ammount bit, user can widthraw the amount
-     * 
-     */
     await walletHistory.save();
 
     switch (wallet_type.toUpperCase()) {
       case "PLAY_BALANCE":
-        const wallet_amount = Number(player.wallet_amount);
-        if (type.toUpperCase() == "DEBIT") {
-          player.wallet_amount = wallet_amount - Number(loaded_amount)
-        } else {
-          player.wallet_amount = wallet_amount + Number(loaded_amount);
-        }
+        player.wallet_amount += (type.toUpperCase() === "DEBIT") ? -Number(loaded_amount) : Number(loaded_amount);
         break;
       case "WINNING_BALANCE":
-        const winning_amount = Number(player.winning_amount);
-        if (type.toUpperCase() == "DEBIT") {
-          player.winning_amount = winning_amount - Number(loaded_amount)
-        } else {
-          player.winning_amount = winning_amount + Number(loaded_amount);
-        }
+        player.winning_amount += (type.toUpperCase() === "DEBIT") ? -Number(loaded_amount) : Number(loaded_amount);
         break;
-
       case "BONUS_BALANCE":
-        const bonus_ammount = Number(player.bonus_ammount);
-        if (type.toUpperCase() == "DEBIT") {
-          player.bonus_ammount = bonus_ammount - Number(loaded_amount)
-        } else {
-          player.bonus_ammount = bonus_ammount + Number(loaded_amount);
-        }
+        player.bonus_ammount += (type.toUpperCase() === "DEBIT") ? -Number(loaded_amount) : Number(loaded_amount);
         break;
     }
-    const upldated = await Players.findOneAndUpdate({
-      _id: player_id
-    }, player).exec();
 
-    upldated ? res.status(200).json({
-      success: true,
-      message: 'Amount loaded for that player.'
-    }) : res.status(500).json({
-      success: false,
-      message: 'Failed to load amount for player.',
-      error: error.message
-    });
+    const updatedPlayer = await Players.findOneAndUpdate({
+      _id: player_id
+    }, player, {
+      new: true
+    }).exec();
+
+    if (updatedPlayer) {
+      return res.status(200).json({
+        success: true,
+        message: 'Amount loaded for that player.'
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to load amount for player.'
+      });
+    }
   } catch (error) {
     console.error('Error in loading amount for this player:', error);
     return res.status(500).json({
