@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const App = require('./App');
 
 const PlayerSchema = new mongoose.Schema({
     first_name: {
@@ -21,7 +22,7 @@ const PlayerSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    player_status: {
+    status: {
         type: String,
         default: 0
     },
@@ -38,21 +39,42 @@ const PlayerSchema = new mongoose.Schema({
         default: 0
     },
     wallet_amount: {
-        type: String,
-        default: ''
+        type: Number,
+    default: 0
     },
-    winning: {
+    winning_amount: {
         type: Number,
         default: 0
     },
-    bonus: {
+    bonus_ammount: {
+        type: Number,
+        default: 0
+    },
+    join_code: {
         type: String,
         default: ''
-    }
-},{ collection: 'Players', timestamps: true });
+    },
+    no_of_loose: {
+        type: Number,
+        default: 0
+    },
+    no_of_total_win: {
+        type: Number,
+        default: 0
+    },
+    banned: {
+        type: Boolean,
+        default: false
+    },
+    app: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'App'
+    },
+}, {
+    collection: 'Players',
+    timestamps: true
+});
 
 const Players = mongoose.model('Players', PlayerSchema);
 
 module.exports = Players;
-
-
