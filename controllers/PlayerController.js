@@ -211,7 +211,7 @@ exports.getPlayerDetails = async function (req, res) {
         message: 'Player not found.'
       });
     }
-console.log("abc");
+// console.log("abc");
     // Construct the desired response format
     const response = {
       success: true,
