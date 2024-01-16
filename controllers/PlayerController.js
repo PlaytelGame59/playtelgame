@@ -745,6 +745,57 @@ exports.getNotificationList = async function (req, res) {
 
 // register tournament 
 
+// exports.registerTournament = async function (req, res) {
+//   try {
+//     // Extract data from the request body
+//     const {
+//       tournament_id,
+//       player_id,
+//       play_amount,
+//       bonus_amount,
+//       players_count
+//     } = req.body;
+
+//     // Check if the tournament exists
+//     const tournament = await Tournament.findById(tournament_id);
+//     if (!tournament) {
+//       return res.status(400).json({ success: false, message: 'Tournament not found.' });
+//     }
+
+//     // Check if the player exists
+//     const player = await Players.findById(player_id);
+//     if (!player) {
+//       return res.status(400).json({ success: false, message: 'Player not found.' });
+//     }
+
+//     // Create a new record in the registeredTournament table
+//     const registeredTournament = new RegisteredTournament({
+//       tournament_id,
+//       player_id,
+//       play_amount,
+//       bonus_amount,
+//       players_count
+//     });
+
+//     // Save the record
+//     await registeredTournament.save();
+
+//     // Respond with success message
+//     return res.status(200).json({
+//       "success": true,
+//       "operator": "creator", 
+//       "room_no": "736453"
+//   });
+//   } catch (error) {
+//     console.error('Error registering player for tournament:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to register player for tournament.',
+//       error: error.message
+//     });
+//   }
+// };
+
 exports.registerTournament = async function (req, res) {
   try {
     // Extract data from the request body
@@ -774,7 +825,8 @@ exports.registerTournament = async function (req, res) {
       player_id,
       play_amount,
       bonus_amount,
-      players_count
+      players_count,
+      is_registered: true
     });
 
     // Save the record
@@ -785,7 +837,7 @@ exports.registerTournament = async function (req, res) {
       "success": true,
       "operator": "creator", 
       "room_no": "736453"
-  });
+    });
   } catch (error) {
     console.error('Error registering player for tournament:', error);
     return res.status(500).json({
@@ -1213,6 +1265,51 @@ exports.loadWalletAmount = async function (req, res) {
   }
 };
 
+// exports.getTournamentDetails = async function (req, res) {
+//   try {
+//     // Extract data from the request body
+//     const {
+//       player_id,
+//       tournament_id
+//     } = req.body;
+
+//     // Validate input parameters
+//     if (!player_id || !tournament_id) {
+//       return res.status(400).json({
+//         error: 'Invalid input parameters'
+//       });
+//     }
+
+//     // Find data in the RegisteredTournament table based on player_id and tournament_id
+//     const data = await RegisteredTournament.findOne({
+//       player_id,
+//       tournament_id
+//     });
+
+//     // Check if data is found
+//     if (!data) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Data not found for the provided player_id and tournament_id'
+//       });
+//     }
+
+//     // Respond with the retrieved data
+//     return res.status(200).json({
+//       success: true,
+//       data,
+//     });
+//   } catch (error) {
+//     console.error('Error in getting registered tournament data:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to get registered tournament data.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
 exports.getTournamentDetails = async function (req, res) {
   try {
     // Extract data from the request body
@@ -1242,11 +1339,22 @@ exports.getTournamentDetails = async function (req, res) {
       });
     }
 
-    // Respond with the retrieved data
-    return res.status(200).json({
+    // Calculate remaining time (in seconds) - You need to replace this with your logic
+    const remainingTime = 60;
+
+    // Format the response
+    const formattedResponse = {
       success: true,
-      data
-    });
+      remainingtime: remainingTime,
+      count: data.players_count,
+      registered: data.is_registered ? 1 : 0,
+      operator: "creator", // You need to replace this with your logic based on joining position
+      playmoney: parseFloat(data.play_amount),
+      bonusmoney: parseFloat(data.bonus_amount),
+    };
+
+    // Respond with the formatted data
+    return res.status(200).json(formattedResponse);
   } catch (error) {
     console.error('Error in getting registered tournament data:', error);
     return res.status(500).json({

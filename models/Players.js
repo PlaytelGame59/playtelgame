@@ -66,6 +66,10 @@ const PlayerSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    is_registered: {
+        type: Boolean,
+        default: false
+    },
     app: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'App'
