@@ -174,6 +174,11 @@ exports.getPlayerDetails = async function (req, res) {
     } = req.body;
 
     // Find player by player_id
+    if(!ObjectId.isValid(player_id)){
+      return res.status(400).json({
+      success: false,
+      message: 'Player Id is not valid.'
+    }) }
     const player = await Players.findById(player_id);
 
     if (!player) {

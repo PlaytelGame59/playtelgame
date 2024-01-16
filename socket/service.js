@@ -202,8 +202,12 @@ function initializeSocketIO(io) {
     
     // ************************* leave Room *************************
 socket.on("leave_room", (data) => {
-  const { room_code, user_name, user_id, reason } = data;
+  try{const { room_code, user_name, user_id, 
+    reason } = data;
+  console.log(chatRooms);
+  console.log(JSON.stringify(chatRooms));
 
+  console.log(chatRooms)
   if (!chatRooms[room_code]) {
     socket.emit("leave_room_failed", {
       user_id: user_id,
@@ -265,7 +269,11 @@ socket.on("leave_room", (data) => {
       createrID: room.createrID,
       message: `New master assigned in room ${room_code}.`,
     });
+  }}catch(err){
+    console.error(err);
+    return;
   }
+  
 });
 
 // ******************************* join random room ******************************* 
