@@ -6,16 +6,40 @@ const TournamentSchema = mongoose.Schema({
 // use_of (Optional), notes (optional), refund (Optional)
 
 
-    tournamentName: { type: String },
-    betAmount: { type: String }, 
-    noPlayers: { type: String }, 
+    tournamentName: { 
+        type: String,
+        default:"" },
+    betAmount: { 
+        type: String,
+        default:"0"
+     }, 
+    noPlayers: { 
+        type: String,
+        default:"0"
+     }, 
 
-    winningAmount: { type: String },
+    winningAmount: { 
+        type: String,
+        default:"0" },
 
-    winnerCount: { type: String },
-    winningAmount1: { type: String },
-    winningAmount2: { type: String },
-    winningAmount3: { type: String },   
+    winnerCount: { 
+        type: String,
+        default:"0" 
+    },
+
+    winningAmount1: { 
+        type: String,
+        default:"0" 
+    },
+
+    winningAmount2: { 
+        type: String,
+        default:"0" 
+    },
+    winningAmount3: { 
+        type: String,
+        default:"0" 
+    },   
 
     tournamentInterval: { type: String }, 
     tournamentType: { type: String }, 
