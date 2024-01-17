@@ -1342,7 +1342,7 @@ exports.getTournamentDetails = async function (req, res) {
         success: true,
         remainingtime: 60,
         count: "0",
-        registered: 1,
+        registered: 0,
         operator: "creator",
         playmoney: 9.8,
         bonusmoney: 0.2,
