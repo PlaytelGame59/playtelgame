@@ -1265,6 +1265,7 @@ exports.loadWalletAmount = async function (req, res) {
   }
 };
 
+
 // exports.getTournamentDetails = async function (req, res) {
 //   try {
 //     // Extract data from the request body
@@ -1294,11 +1295,22 @@ exports.loadWalletAmount = async function (req, res) {
 //       });
 //     }
 
-//     // Respond with the retrieved data
-//     return res.status(200).json({
+//     // Calculate remaining time (in seconds) - You need to replace this with your logic
+//     const remainingTime = 60;
+
+//     // Format the response
+//     const formattedResponse = {
 //       success: true,
-//       data,
-//     });
+//       remainingtime: remainingTime,
+//       count: data.players_count,
+//       registered: data.is_registered ? 1 : 0,
+//       operator: "creator", // You need to replace this with your logic based on joining position
+//       playmoney: parseFloat(data.play_amount),
+//       bonusmoney: parseFloat(data.bonus_amount),
+//     };
+
+//     // Respond with the formatted data
+//     return res.status(200).json(formattedResponse);
 //   } catch (error) {
 //     console.error('Error in getting registered tournament data:', error);
 //     return res.status(500).json({
@@ -1309,7 +1321,6 @@ exports.loadWalletAmount = async function (req, res) {
 //   }
 // };
 
-
 exports.getTournamentDetails = async function (req, res) {
   try {
     // Extract data from the request body
@@ -1318,25 +1329,29 @@ exports.getTournamentDetails = async function (req, res) {
       tournament_id
     } = req.body;
 
-    // Validate input parameters
-    if (!player_id || !tournament_id) {
-      return res.status(400).json({
-        error: 'Invalid input parameters'
-      });
-    }
-
     // Find data in the RegisteredTournament table based on player_id and tournament_id
     const data = await RegisteredTournament.findOne({
       player_id,
       tournament_id
     });
 
-    // Check if data is found
-    if (!data) {
-      return res.status(404).json({
-        success: false,
-        message: 'Data not found for the provided player_id and tournament_id'
-      });
+    // Check if data is not found or has certain conditions indicating not found
+    if (!data ) {
+      // If data is not found or has invalid conditions, create a default response
+      const defaultResponse = {
+        success: true,
+        remainingtime: 60,
+        count: "0",
+        registered: 1,
+        operator: "creator",
+        playmoney: 9.8,
+        bonusmoney: 0.2,
+        tournament_id,
+        player_id,
+      };
+
+      // Respond with the default response
+      return res.status(200).json(defaultResponse);
     }
 
     // Calculate remaining time (in seconds) - You need to replace this with your logic
