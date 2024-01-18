@@ -13,6 +13,7 @@ const Notification = require('../models/Notification');
 const AdharKYC = require('../models/AdharKYC');
 const WalletHistory = require('../models/WalletHistory');
 const ObjectId = require('mongodb').ObjectId;
+const moment = require('moment'); 
 
 
 exports.userLogin = async function (req, res) {
@@ -1265,120 +1266,266 @@ exports.loadWalletAmount = async function (req, res) {
   }
 };
 
-
 // exports.getTournamentDetails = async function (req, res) {
 //   try {
-//     // Extract data from the request body
-//     const {
-//       player_id,
-//       tournament_id
-//     } = req.body;
+//     const { player_id, tournament_id } = req.body;
 
-//     // Validate input parameters
-//     if (!player_id || !tournament_id) {
-//       return res.status(400).json({
-//         error: 'Invalid input parameters'
-//       });
-//     }
+//     const playerData = await RegisteredTournament.findOne({ player_id });
 
-//     // Find data in the RegisteredTournament table based on player_id and tournament_id
-//     const data = await RegisteredTournament.findOne({
-//       player_id,
-//       tournament_id
-//     });
+//     const tournamentData = await Tournament.findOne({ _id: tournament_id });
+    
+//     const playerCount = await RegisteredTournament.countDocuments({ tournament_id });
 
-//     // Check if data is found
-//     if (!data) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Data not found for the provided player_id and tournament_id'
-//       });
-//     }
-
-//     // Calculate remaining time (in seconds) - You need to replace this with your logic
-//     const remainingTime = 60;
-
-//     // Format the response
-//     const formattedResponse = {
+//     let responseData = {
 //       success: true,
-//       remainingtime: remainingTime,
-//       count: data.players_count,
-//       registered: data.is_registered ? 1 : 0,
-//       operator: "creator", // You need to replace this with your logic based on joining position
-//       playmoney: parseFloat(data.play_amount),
-//       bonusmoney: parseFloat(data.bonus_amount),
+//       count: playerCount.toString(),
+//       registered: 0, 
+//       operator: "creator", 
+//       playmoney: 9.8,
+//       bonusmoney: 0.2,
+//       tournament_id,
+//       player_id,
 //     };
 
+//     // If player_id is present, update the response with relevant data
+//     if (playerData) {
+//       responseData = {
+//         ...responseData,
+//         registered: playerData.is_registered ? 1 : 0,
+//       };
+//     }
+
+//     // If tournament_id is present, update the response with bet_amount details
+//     if (tournamentData) {
+//       const betAmount = tournamentData.betAmount;
+//       const playMoneyPercentage = 98;
+//       const bonusMoneyPercentage = 100 - playMoneyPercentage;
+
+//       responseData = {
+//         ...responseData,
+//         playmoney: (playMoneyPercentage / 100) * betAmount,
+//         bonusmoney: (bonusMoneyPercentage / 100) * betAmount,
+//       };
+
+//       // Calculate remaining time for the tournament
+//       const tournamentStartTime = moment(tournamentData.createdAt); // Assuming 'createdAt' is the field representing tournament creation time
+//       const tournamentInterval = tournamentData.tournamentInterval; // Assuming 'tournamentInterval' is the field representing the interval in minutes
+
+//       const currentTime = moment();
+//       const timeDifference = moment.duration(currentTime.diff(tournamentStartTime));
+//       const elapsedMinutes = timeDifference.asMinutes();
+//       const remainingMinutes = tournamentInterval - (elapsedMinutes % tournamentInterval);
+
+//       responseData.remainingtime = remainingMinutes;
+//     }
+
 //     // Respond with the formatted data
-//     return res.status(200).json(formattedResponse);
+//     return res.status(200).json(responseData);
 //   } catch (error) {
 //     console.error('Error in getting registered tournament data:', error);
 //     return res.status(500).json({
 //       success: false,
 //       message: 'Failed to get registered tournament data.',
-//       error: error.message
+//       error: error.message,
 //     });
 //   }
 // };
 
+
+// exports.getTournamentDetails = async function (req, res) {
+//   try {
+//     const { player_id, tournament_id } = req.body;
+
+//     // Check if tournament_id is present in the Tournament table
+//     const tournamentData = await Tournament.findOne({ _id: tournament_id });
+
+//     let responseData;
+
+//     if (tournamentData) {
+//       // If tournament_id is present, update the response with tournament details
+//       const playerData = await RegisteredTournament.findOne({ player_id });
+//       const playerCount = await RegisteredTournament.countDocuments({ tournament_id });
+
+//       responseData = {
+//         success: true,
+//         count: playerCount.toString(),
+//         registered: 0, // Default value
+//         operator: "creator", // Default value
+//         playmoney: 0, // Default value
+//         bonusmoney: 0, // Default value
+//         tournament_id,
+//         player_id,
+//       };
+
+//       // If player_id is present, update the response with relevant data
+//       if (playerData) {
+//         responseData = {
+//           ...responseData,
+//           registered: playerData.is_registered ? 1 : 0,
+//         };
+//       }
+
+//       const betAmount = tournamentData.betAmount;
+//       const playMoneyPercentage = 98;
+//       const bonusMoneyPercentage = 100 - playMoneyPercentage;
+
+//       responseData.playmoney = (playMoneyPercentage / 100) * betAmount;
+//       responseData.bonusmoney = (bonusMoneyPercentage / 100) * betAmount;
+
+//       // Calculate remaining time for the tournament
+
+
+//       // const tournamentStartTime = moment(tournamentData.createdAt);
+//       // const tournamentInterval = parseFloat(tournamentData.tournamentInterval);
+
+
+//       // const currentTime = moment();
+//       // const timeDifference = moment.duration(currentTime.diff(tournamentStartTime));
+//       // const elapsedMinutes = timeDifference.asMinutes();
+//       // const remainingMinutes = tournamentInterval - (elapsedMinutes % tournamentInterval);
+
+//       // responseData.remainingtime = remainingMinutes;
+
+
+//       // Convert tournamentInterval to a numerical value
+//       const tournamentIntervalInSeconds = parseInt(tournamentData.tournamentInterval) * 60;
+
+//       // Calculate remaining time for the tournament based on repeating intervals
+//       const tournamentStartTime = new Date(tournamentData.createdAt).getTime();
+
+//       const currentTime = new Date().getTime();
+//       const timeDifference = currentTime - tournamentStartTime;
+//       const elapsedSeconds = timeDifference / 1000;
+
+//       // Calculate the current interval boundary
+//       const currentIntervalStart = Math.floor(elapsedSeconds / tournamentIntervalInSeconds) * tournamentIntervalInSeconds;
+
+//       // Calculate the next interval boundary
+//       const nextIntervalStart = currentIntervalStart + tournamentIntervalInSeconds;
+
+//       const remainingSeconds = nextIntervalStart - elapsedSeconds;
+
+//       responseData.remainingtime = remainingSeconds;
+
+//     } else {
+//       // If tournament_id does not exist, set default values
+//       responseData = {
+//         success: true,
+//         count: "0",
+//         registered: 0,
+//         operator: "creator",
+//         playmoney: 9.8,
+//         bonusmoney: 0.2,
+//         tournament_id,
+//         player_id,
+//         remainingtime: 0, // You can set the default remaining time to 0 or any other value
+//       };
+//     }
+
+//     // Respond with the formatted data
+//     return res.status(200).json(responseData);
+//   } catch (error) {
+//     console.error('Error in getting registered tournament data:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to get registered tournament data.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+
 exports.getTournamentDetails = async function (req, res) {
   try {
-    // Extract data from the request body
-    const {
-      player_id,
-      tournament_id
-    } = req.body;
+    const { player_id, tournament_id } = req.body;
 
-    // Find data in the RegisteredTournament table based on player_id and tournament_id
-    const data = await RegisteredTournament.findOne({
-      player_id,
-      tournament_id
-    });
+    // Count the number of documents in RegisteredTournament matching the given tournament_id and player_id
+    const playerCount = await RegisteredTournament.countDocuments({ tournament_id, player_id });
 
-    // Check if data is not found or has certain conditions indicating not found
-    if (!data ) {
-      // If data is not found or has invalid conditions, create a default response
-      const defaultResponse = {
+    // Check if tournament_id is present in the Tournament table
+    const tournamentData = await Tournament.findOne({ _id: tournament_id });
+
+    let responseData;
+
+    if (tournamentData) {
+      // If tournament_id is present, update the response with tournament details
+      const playerData = await RegisteredTournament.findOne({ player_id });
+
+      responseData = {
         success: true,
-        remainingtime: 60,
-        count: "0",
+        count: playerCount.toString(),
+        registered: 0, // Default value
+        operator: "creator", // Default value
+        playmoney: 0, // Default value
+        bonusmoney: 0, // Default value
+        tournament_id,
+        player_id,
+      };
+
+      // If player_id is present, update the response with relevant data
+      if (playerData) {
+        responseData = {
+          ...responseData,
+          registered: playerData.is_registered ? 1 : 0,
+        };
+      }
+
+      const betAmount = tournamentData.betAmount;
+      const playMoneyPercentage = 98;
+      const bonusMoneyPercentage = 100 - playMoneyPercentage;
+
+      responseData.playmoney = (playMoneyPercentage / 100) * betAmount;
+      responseData.bonusmoney = (bonusMoneyPercentage / 100) * betAmount;
+
+      // Convert tournamentInterval to a numerical value (in seconds)
+      const tournamentIntervalInSeconds = parseInt(tournamentData.tournamentInterval) * 60;
+
+      // Convert createdAt to a formatted time string
+      const tournamentStartTime = new Date(tournamentData.createdAt);
+
+      // Calculate remaining time for the tournament based on repeating intervals
+      const currentTime = new Date().getTime();
+      const timeDifference = currentTime - tournamentStartTime.getTime();
+      const elapsedSeconds = timeDifference / 1000;
+
+      // Calculate the current interval boundary
+      const currentIntervalStart = Math.floor(elapsedSeconds / tournamentIntervalInSeconds) * tournamentIntervalInSeconds;
+
+      // Calculate the next interval boundary
+      const nextIntervalStart = currentIntervalStart + tournamentIntervalInSeconds;
+
+      const remainingSeconds = nextIntervalStart - elapsedSeconds;
+
+      responseData.remainingtime = remainingSeconds;
+
+    } else {
+      // If tournament_id does not exist, set default values
+      responseData = {
+        success: true,
+        count: playerCount.toString(), // You can set the default player count to any value
         registered: 0,
         operator: "creator",
         playmoney: 9.8,
         bonusmoney: 0.2,
         tournament_id,
         player_id,
+        remainingtime: 60, // You can set the default remaining time to any value
       };
-
-      // Respond with the default response
-      return res.status(200).json(defaultResponse);
     }
 
-    // Calculate remaining time (in seconds) - You need to replace this with your logic
-    const remainingTime = 60;
-
-    // Format the response
-    const formattedResponse = {
-      success: true,
-      remainingtime: remainingTime,
-      count: data.players_count,
-      registered: data.is_registered ? 1 : 0,
-      operator: "creator", // You need to replace this with your logic based on joining position
-      playmoney: parseFloat(data.play_amount),
-      bonusmoney: parseFloat(data.bonus_amount),
-    };
-
     // Respond with the formatted data
-    return res.status(200).json(formattedResponse);
+    return res.status(200).json(responseData);
   } catch (error) {
     console.error('Error in getting registered tournament data:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get registered tournament data.',
-      error: error.message
+      error: error.message,
     });
   }
 };
+
 
 exports.getTournamentList =async function (req,res) {
   try {
