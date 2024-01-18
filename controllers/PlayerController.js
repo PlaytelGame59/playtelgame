@@ -13,61 +13,60 @@ const Notification = require('../models/Notification');
 const AdharKYC = require('../models/AdharKYC');
 const WalletHistory = require('../models/WalletHistory');
 const ObjectId = require('mongodb').ObjectId;
-const moment = require('moment'); 
 
 
-// exports.userLogin = async function (req, res) {
-//   try {
-//     const {
-//       email,
-//       first_name,
-//       device_type,
-//       device_token,
-//       mobile
-//     } = req.body;
+exports.userLogin = async function (req, res) {
+  try {
+    const {
+      email,
+      first_name,
+      device_type,
+      device_token,
+      mobile
+    } = req.body;
 
-//     // Check if the mobile number already exists in the Players table
-//     let existingUser = await Players.findOne({
-//       mobile
-//     });
+    // Check if the mobile number already exists in the Players table
+    let existingUser = await Players.findOne({
+      mobile
+    });
 
-//     if (existingUser) {
-//       // If the user exists, return the existing data without updating
-//       return res.status(200).json({
-//         success: true,
-//         data: existingUser,
-//         message: 'User already exists. Returning existing data.',
-//       });
-//     } else {
-//       // If the user doesn't exist, create a new user entry
-//       const data = await Players.create({
-//         email,
-//         first_name,
-//         device_type,
-//         device_token,
-//         mobile,
-//       });
+    if (existingUser) {
+      // If the user exists, return the existing data without updating
+      return res.status(200).json({
+        success: true,
+        data: existingUser,
+        message: 'User already exists. Returning existing data.',
+      });
+    } else {
+      // If the user doesn't exist, create a new user entry
+      const data = await Players.create({
+        email,
+        first_name,
+        device_type,
+        device_token,
+        mobile,
+      });
 
-//       const token = jwt.sign({
-//         mobile
-//       }, process.env.JWT_SECRET, {
-//         expiresIn: '1h'
-//       }); // Using the secret key from .env
+      const token = jwt.sign({
+        mobile
+      }, process.env.JWT_SECRET, {
+        expiresIn: '1h'
+      }); // Using the secret key from .env
 
-//       return res.status(200).json({
-//         success: true,
-//         data,
-//         token: token,
-//         message: 'New user created.',
-//       });
-//     }
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       error: error.message
-//     });
-//   }
-// };
+      return res.status(200).json({
+        success: true,
+        data,
+        token: token,
+        message: 'New user created.',
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
 
 
 const uploadImage = configMulter('playerImage/', [{
@@ -746,57 +745,6 @@ exports.getNotificationList = async function (req, res) {
 
 // register tournament 
 
-// exports.registerTournament = async function (req, res) {
-//   try {
-//     // Extract data from the request body
-//     const {
-//       tournament_id,
-//       player_id,
-//       play_amount,
-//       bonus_amount,
-//       players_count
-//     } = req.body;
-
-//     // Check if the tournament exists
-//     const tournament = await Tournament.findById(tournament_id);
-//     if (!tournament) {
-//       return res.status(400).json({ success: false, message: 'Tournament not found.' });
-//     }
-
-//     // Check if the player exists
-//     const player = await Players.findById(player_id);
-//     if (!player) {
-//       return res.status(400).json({ success: false, message: 'Player not found.' });
-//     }
-
-//     // Create a new record in the registeredTournament table
-//     const registeredTournament = new RegisteredTournament({
-//       tournament_id,
-//       player_id,
-//       play_amount,
-//       bonus_amount,
-//       players_count
-//     });
-
-//     // Save the record
-//     await registeredTournament.save();
-
-//     // Respond with success message
-//     return res.status(200).json({
-//       "success": true,
-//       "operator": "creator", 
-//       "room_no": "736453"
-//   });
-//   } catch (error) {
-//     console.error('Error registering player for tournament:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Failed to register player for tournament.',
-//       error: error.message
-//     });
-//   }
-// };
-
 exports.registerTournament = async function (req, res) {
   try {
     // Extract data from the request body
@@ -826,8 +774,7 @@ exports.registerTournament = async function (req, res) {
       player_id,
       play_amount,
       bonus_amount,
-      players_count,
-      is_registered: true
+      players_count
     });
 
     // Save the record
@@ -838,7 +785,7 @@ exports.registerTournament = async function (req, res) {
       "success": true,
       "operator": "creator", 
       "room_no": "736453"
-    });
+  });
   } catch (error) {
     console.error('Error registering player for tournament:', error);
     return res.status(500).json({
@@ -1270,72 +1217,6 @@ exports.loadWalletAmount = async function (req, res) {
 //   try {
 //     const { player_id, tournament_id } = req.body;
 
-//     const playerData = await RegisteredTournament.findOne({ player_id });
-
-//     const tournamentData = await Tournament.findOne({ _id: tournament_id });
-    
-//     const playerCount = await RegisteredTournament.countDocuments({ tournament_id });
-
-//     let responseData = {
-//       success: true,
-//       count: playerCount.toString(),
-//       registered: 0, 
-//       operator: "creator", 
-//       playmoney: 9.8,
-//       bonusmoney: 0.2,
-//       tournament_id,
-//       player_id,
-//     };
-
-//     // If player_id is present, update the response with relevant data
-//     if (playerData) {
-//       responseData = {
-//         ...responseData,
-//         registered: playerData.is_registered ? 1 : 0,
-//       };
-//     }
-
-//     // If tournament_id is present, update the response with bet_amount details
-//     if (tournamentData) {
-//       const betAmount = tournamentData.betAmount;
-//       const playMoneyPercentage = 98;
-//       const bonusMoneyPercentage = 100 - playMoneyPercentage;
-
-//       responseData = {
-//         ...responseData,
-//         playmoney: (playMoneyPercentage / 100) * betAmount,
-//         bonusmoney: (bonusMoneyPercentage / 100) * betAmount,
-//       };
-
-//       // Calculate remaining time for the tournament
-//       const tournamentStartTime = moment(tournamentData.createdAt); // Assuming 'createdAt' is the field representing tournament creation time
-//       const tournamentInterval = tournamentData.tournamentInterval; // Assuming 'tournamentInterval' is the field representing the interval in minutes
-
-//       const currentTime = moment();
-//       const timeDifference = moment.duration(currentTime.diff(tournamentStartTime));
-//       const elapsedMinutes = timeDifference.asMinutes();
-//       const remainingMinutes = tournamentInterval - (elapsedMinutes % tournamentInterval);
-
-//       responseData.remainingtime = remainingMinutes;
-//     }
-
-//     // Respond with the formatted data
-//     return res.status(200).json(responseData);
-//   } catch (error) {
-//     console.error('Error in getting registered tournament data:', error);
-//     return res.status(500).json({
-//       success: false,
-//       message: 'Failed to get registered tournament data.',
-//       error: error.message,
-//     });
-//   }
-// };
-
-
-// exports.getTournamentDetails = async function (req, res) {
-//   try {
-//     const { player_id, tournament_id } = req.body;
-
 //     // Check if tournament_id is present in the Tournament table
 //     const tournamentData = await Tournament.findOne({ _id: tournament_id });
 
@@ -1349,7 +1230,7 @@ exports.loadWalletAmount = async function (req, res) {
 //       responseData = {
 //         success: true,
 //         count: playerCount.toString(),
-//         registered: 0, // Default value
+//         registered: playerData ? 1 : 0, // Set to 1 if player_id is registered, otherwise 0
 //         operator: "creator", // Default value
 //         playmoney: 0, // Default value
 //         bonusmoney: 0, // Default value
@@ -1361,40 +1242,27 @@ exports.loadWalletAmount = async function (req, res) {
 //       if (playerData) {
 //         responseData = {
 //           ...responseData,
-//           registered: playerData.is_registered ? 1 : 0,
+//           registered: 1,
 //         };
 //       }
 
-//       const betAmount = tournamentData.betAmount;
+//       // Fetch betAmount from tournamentData
+//       const betAmount = tournamentData.betAmount || 0; // Set a default value if betAmount is undefined
 //       const playMoneyPercentage = 98;
 //       const bonusMoneyPercentage = 100 - playMoneyPercentage;
 
 //       responseData.playmoney = (playMoneyPercentage / 100) * betAmount;
 //       responseData.bonusmoney = (bonusMoneyPercentage / 100) * betAmount;
 
-//       // Calculate remaining time for the tournament
-
-
-//       // const tournamentStartTime = moment(tournamentData.createdAt);
-//       // const tournamentInterval = parseFloat(tournamentData.tournamentInterval);
-
-
-//       // const currentTime = moment();
-//       // const timeDifference = moment.duration(currentTime.diff(tournamentStartTime));
-//       // const elapsedMinutes = timeDifference.asMinutes();
-//       // const remainingMinutes = tournamentInterval - (elapsedMinutes % tournamentInterval);
-
-//       // responseData.remainingtime = remainingMinutes;
-
-
-//       // Convert tournamentInterval to a numerical value
+//       // Convert tournamentInterval to a numerical value (in seconds)
 //       const tournamentIntervalInSeconds = parseInt(tournamentData.tournamentInterval) * 60;
 
-//       // Calculate remaining time for the tournament based on repeating intervals
-//       const tournamentStartTime = new Date(tournamentData.createdAt).getTime();
+//       // Convert createdAt to a formatted time string
+//       const tournamentStartTime = new Date(tournamentData.createdAt);
 
+//       // Calculate remaining time for the tournament based on repeating intervals
 //       const currentTime = new Date().getTime();
-//       const timeDifference = currentTime - tournamentStartTime;
+//       const timeDifference = currentTime - tournamentStartTime.getTime();
 //       const elapsedSeconds = timeDifference / 1000;
 
 //       // Calculate the current interval boundary
@@ -1411,14 +1279,14 @@ exports.loadWalletAmount = async function (req, res) {
 //       // If tournament_id does not exist, set default values
 //       responseData = {
 //         success: true,
-//         count: "0",
+//         count: "5", // You can set the default player count to any value
 //         registered: 0,
 //         operator: "creator",
 //         playmoney: 9.8,
 //         bonusmoney: 0.2,
 //         tournament_id,
 //         player_id,
-//         remainingtime: 0, // You can set the default remaining time to 0 or any other value
+//         remainingtime: 60, // You can set the default remaining time to any value
 //       };
 //     }
 
@@ -1434,14 +1302,9 @@ exports.loadWalletAmount = async function (req, res) {
 //   }
 // };
 
-
-
 exports.getTournamentDetails = async function (req, res) {
   try {
     const { player_id, tournament_id } = req.body;
-
-    // Count the number of documents in RegisteredTournament matching the given tournament_id and player_id
-    const playerCount = await RegisteredTournament.countDocuments({ tournament_id, player_id });
 
     // Check if tournament_id is present in the Tournament table
     const tournamentData = await Tournament.findOne({ _id: tournament_id });
@@ -1451,14 +1314,13 @@ exports.getTournamentDetails = async function (req, res) {
     if (tournamentData) {
       // If tournament_id is present, update the response with tournament details
       const playerData = await RegisteredTournament.findOne({ player_id });
+      const playerCount = await RegisteredTournament.countDocuments({ tournament_id });
 
       responseData = {
         success: true,
         count: playerCount.toString(),
-        registered: 0, // Default value
-        operator: "creator", // Default value
-        playmoney: 0, // Default value
-        bonusmoney: 0, // Default value
+        registered: playerData ? 1 : 0,
+        operator: "creator",
         tournament_id,
         player_id,
       };
@@ -1467,13 +1329,14 @@ exports.getTournamentDetails = async function (req, res) {
       if (playerData) {
         responseData = {
           ...responseData,
-          registered: playerData.is_registered ? 1 : 0,
+          registered: 1,
         };
       }
 
-      const betAmount = tournamentData.betAmount;
+      // Fetch betAmount from tournamentData
+      const betAmount = parseFloat(tournamentData.betAmount) || 0; // Convert to float and set a default value if betAmount is undefined
       const playMoneyPercentage = 98;
-      const bonusMoneyPercentage = 100 - playMoneyPercentage;
+      const bonusMoneyPercentage = 2;
 
       responseData.playmoney = (playMoneyPercentage / 100) * betAmount;
       responseData.bonusmoney = (bonusMoneyPercentage / 100) * betAmount;
@@ -1503,14 +1366,14 @@ exports.getTournamentDetails = async function (req, res) {
       // If tournament_id does not exist, set default values
       responseData = {
         success: true,
-        count: playerCount.toString(), // You can set the default player count to any value
+        count: "5",
         registered: 0,
         operator: "creator",
         playmoney: 9.8,
         bonusmoney: 0.2,
         tournament_id,
         player_id,
-        remainingtime: 60, // You can set the default remaining time to any value
+        remainingtime: 60,
       };
     }
 
