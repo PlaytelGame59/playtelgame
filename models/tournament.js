@@ -43,7 +43,7 @@ const TournamentSchema = mongoose.Schema({
 
     tournamentInterval: { type: String }, 
     tournamentType: { type: String }, 
-    tournamentStatus: { type: String }
+    tournamentStatus: { type: Boolean }
 })    
 
 const Tournament = mongoose.model('tournament', TournamentSchema)
