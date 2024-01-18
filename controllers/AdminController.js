@@ -6,12 +6,12 @@ const Disclamer = require('../models/Disclamer');
 const Notification = require('../models/Notification');
 const configMulter = require('../configMulter')
 const multer = require('multer');
-const Player = require('../models/Player');
-const Withdraw = require('../models/Withdraw');
-const Transaction  = require('../models/Transaction')
+const Players = require('../models/Players');
+// const Withdraw = require('../models/Withdraw');
+// const Transaction  = require('../models/Transaction')
 const User = require('../models/User');
-const Wallet = require('../models/Wallet');
-const cron = require('node-cron');
+// const Wallet = require('../models/Wallet');
+// const cron = require('node-cron');
 
 // Admin module <----------------------->
 exports.signUp = async function (req, res) {
@@ -42,6 +42,7 @@ exports.signUp = async function (req, res) {
         });
     }   
 }
+
 exports.login = async function (req, res) {
     const { email, password } = req.body;
 
@@ -340,7 +341,7 @@ exports.addPlayer = async function (req, res) {
         // Create a new instance of the Player
         // const base64Data = req.file.buffer.toString('base64');
 
-        const newPlayer = new Player({
+        const newPlayer = new Players({
             // playerId, 
             name, 
             email, 
@@ -362,7 +363,7 @@ exports.addPlayer = async function (req, res) {
 exports.getPlayer = async function (rea, res) {
     try {
         // Fetch all tournament from the database
-        const player = await Player.find();
+        const player = await Players.find();
 
         // Respond with the list of player
         res.status(200).json({ msg: 'sucessfull', player });  
@@ -378,7 +379,7 @@ exports.updatePlayer = async function (req, res) {
         const {  name, email, player_image, mobileNo } = req.body;
     
         // Find the player by ID
-        let player = await Player.findById(playerId);
+        let player = await Players.findById(playerId);
     
         if(player) {
             // Update the player field
@@ -402,7 +403,7 @@ exports.deletePlayer = async function (req, res) {
     try {
         const playerId = req.body.playerId
     
-        const deletedPlayers = await Player.findByIdAndDelete(playerId);     
+        const deletedPlayers = await Players.findByIdAndDelete(playerId);     
     
         if(!deletedPlayers) {
             return res.status(404).json({ status: 'error', msg: 'Players not found' });
@@ -417,7 +418,7 @@ exports.deletePlayer = async function (req, res) {
 exports.getleaderboard = async function (req, res) {
     try {
       // Fetch users from the database, sorted by a relevant metric (e.g., amount)
-      const leaderboard = await Player.find().sort({ amount: -1 }).limit(4);
+      const leaderboard = await Players.find().sort({ amount: -1 }).limit(4);
   
       // You can customize the sorting and limit based on your application's requirements
   
@@ -429,7 +430,7 @@ exports.getleaderboard = async function (req, res) {
 };
 exports.getactivePlayer = async function (req, res) {
     try {
-        const activePlayers = await Player.find({ isActive: true });
+        const activePlayers = await Players.find({ isActive: true });
 
         return res.status(200).json({
             success: true,
@@ -457,7 +458,7 @@ exports.updateBanned = async function (req, res) {
         }
 
       // Update player status in the database
-        const updatedPlayer = await Player.findByIdAndUpdate(
+        const updatedPlayer = await Players.findByIdAndUpdate(
             playerId,
             { isBanned },
             { new: true }
@@ -478,7 +479,7 @@ exports.updateBanned = async function (req, res) {
 // banned player
 exports.getBannedPlayers = async function (req, res) {
     try {
-        const bannedPlayers = await Player.find({ isBanned: 1 }); // Fetch players where isBanned is 1 (true).
+        const bannedPlayers = await Players.find({ isBanned: 1 }); // Fetch players where isBanned is 1 (true).
 
         return res.status(200).json({
             success: true,
@@ -551,198 +552,198 @@ exports.addNotification = async function (req, res) {
 
 
 // Transaction module <----------------------->
-exports.getTransaction = async function (rea, res) {
-    try {
-        // Fetch all tournament from the database
-        const transaction = await Transaction.find();
-        // Respond with the list of tournament
-        res.status(200).json({ msg: 'sucessfull', transaction });  
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error', error });
-    }
-}
+// exports.getTransaction = async function (rea, res) {
+//     try {
+//         // Fetch all tournament from the database
+//         const transaction = await Transaction.find();
+//         // Respond with the list of tournament
+//         res.status(200).json({ msg: 'sucessfull', transaction });  
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error', error });
+//     }
+// }
 
 // wallet module <----------------------->
 // add_amount
-exports.addAmount = async function (req, res) {
+// exports.addAmount = async function (req, res) {
 
-    // transactionType: { type: String },
-    // walletType: { type: String },
-    // addAmount: { type: String },
-    // notes: { type: String }
+//     // transactionType: { type: String },
+//     // walletType: { type: String },
+//     // addAmount: { type: String },
+//     // notes: { type: String }
 
-    try {
-        const { 
-            list_id, 
-            transactionType, 
-            addAmount, 
-            notes
-        } = req.body;
+//     try {
+//         const { 
+//             list_id, 
+//             transactionType, 
+//             addAmount, 
+//             notes
+//         } = req.body;
 
-        const newWallet = new Wallet({
-            player_id: list_id,
-            transactionType, 
-            addAmount, 
-            notes
-        });
+//         const newWallet = new Wallet({
+//             player_id: list_id,
+//             transactionType, 
+//             addAmount, 
+//             notes
+//         });
 
-        const savedWallet = await newWallet.save();
-        res.status(201).json({ status: 'success', savedWallet });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-};
+//         const savedWallet = await newWallet.save();
+//         res.status(201).json({ status: 'success', savedWallet });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error' });
+//     }
+// };
 
 // withdraw module <----------------------->
 
-exports.addWithdrawRequestList = async function (req, res) {
-    try {
-        const { playerId, amount } = req.params;
+// exports.addWithdrawRequestList = async function (req, res) {
+//     try {
+//         const { playerId, amount } = req.params;
 
-        // Validate and process the playerId and amount as needed
+//         // Validate and process the playerId and amount as needed
 
-        // Example: Find the player by playerId to associate with the withdrawal request
-        const player = await Player.findById(playerId);
-        if (!player) {
-            return res.status(404).json({
-                success: false,
-                message: 'Player not found.',
-            });
-        }
+//         // Example: Find the player by playerId to associate with the withdrawal request
+//         const player = await Players.findById(playerId);
+//         if (!player) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: 'Player not found.',
+//             });
+//         }
 
-        // Create a new withdrawal request
-        const withdrawalRequest = new Withdraw({
-            player_id: playerId,
-            amount: amount,
-            status: 'pending',
-            // Add other fields as needed
-        });
+//         // Create a new withdrawal request
+//         const withdrawalRequest = new Withdraw({
+//             player_id: playerId,
+//             amount: amount,
+//             status: 'pending',
+//             // Add other fields as needed
+//         });
 
-        // Save the withdrawal request to the database
-        await withdrawalRequest.save();
+//         // Save the withdrawal request to the database
+//         await withdrawalRequest.save();
 
-        // Respond with success message
-        res.status(201).json({
-            success: true,
-            message: 'Withdrawal request added successfully.',
-            withdrawalRequest: withdrawalRequest,
-        });
-    } catch (error) {
-        console.error('Error adding withdrawal request:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to add withdrawal request.',
-            error: error.message,
-        });
-    }
-};
-// const WithdrawalRequest = require('../models/WithdrawalRequest');
-// const Player = require('../models/Player');
+//         // Respond with success message
+//         res.status(201).json({
+//             success: true,
+//             message: 'Withdrawal request added successfully.',
+//             withdrawalRequest: withdrawalRequest,
+//         });
+//     } catch (error) {
+//         console.error('Error adding withdrawal request:', error);
+//         return res.status(500).json({
+//             success: false,
+//             message: 'Failed to add withdrawal request.',
+//             error: error.message,
+//         });
+//     }
+// };
+// // const WithdrawalRequest = require('../models/WithdrawalRequest');
+// // const Player = require('../models/Player');
 
-exports.getWithdrawRequestList = async function (req, res) {
-    try {
-        // Fetch withdrawal requests and populate player details
-        const withdrawalRequests = await Withdraw.find()
-            .populate('player_id', 'playerId playerName email') // Add fields you want to retrieve for the player
-            .exec();
+// exports.getWithdrawRequestList = async function (req, res) {
+//     try {
+//         // Fetch withdrawal requests and populate player details
+//         const withdrawalRequests = await Withdraw.find()
+//             .populate('player_id', 'playerId playerName email') // Add fields you want to retrieve for the player
+//             .exec();
 
-        // Your logic to filter, process, or modify the withdrawal requests goes here
+//         // Your logic to filter, process, or modify the withdrawal requests goes here
 
-        // Respond with the list of withdrawal requests and player details
-        res.status(200).json({
-            success: true,
-            withdrawalRequests,
-        });
-    } catch (error) {
-        console.error('Error fetching and processing withdrawal requests:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to fetch withdrawal requests.',
-            error: error.message,
-        });
-    }
-};
+//         // Respond with the list of withdrawal requests and player details
+//         res.status(200).json({
+//             success: true,
+//             withdrawalRequests,
+//         });
+//     } catch (error) {
+//         console.error('Error fetching and processing withdrawal requests:', error);
+//         return res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch withdrawal requests.',
+//             error: error.message,
+//         });
+//     }
+// };
 
-exports.getapproveWithdraw = async function (req, res) {
-    try {
-        const approveWithdraw = await Player.find({ isApprove: true });
+// exports.getapproveWithdraw = async function (req, res) {
+//     try {
+//         const approveWithdraw = await Players.find({ isApprove: true });
 
-        return res.status(200).json({
-            success: true,
-            message: 'approve players retrieved successfully.',
-            approveWithdraw,
-        });
+//         return res.status(200).json({
+//             success: true,
+//             message: 'approve players retrieved successfully.',
+//             approveWithdraw,
+//         });
 
         
-    } catch (error) {
-        console.error('Error fetching approve players:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to fetch approve players.',
-            error: error.message,
-        });
-    }
-}
-// Change the name of the function and the success message
-exports.getRejectedWithdraw = async function (req, res) {
-    try {
-        // Find players with isApprove set to false (rejected)
-        const rejectedWithdraw = await Player.find({ isApprove: false });
+//     } catch (error) {
+//         console.error('Error fetching approve players:', error);
+//         return res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch approve players.',
+//             error: error.message,
+//         });
+//     }
+// }
+// // Change the name of the function and the success message
+// exports.getRejectedWithdraw = async function (req, res) {
+//     try {
+//         // Find players with isApprove set to false (rejected)
+//         const rejectedWithdraw = await Players.find({ isApprove: false });
 
-        return res.status(200).json({
-            success: true,
-            message: 'Rejected players retrieved successfully.',
-            rejectedWithdraw,
-        });
-    } catch (error) {
-        console.error('Error fetching rejected players:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to fetch rejected players.',
-            error: error.message,
-        });
-    }
-};  
-// Add a new endpoint to handle approve, withdraw, and reject actions
-exports.updateWithdrawStatus = async function (req, res) {
-    try {
-        const { playerId, action } = req.body;
+//         return res.status(200).json({
+//             success: true,
+//             message: 'Rejected players retrieved successfully.',
+//             rejectedWithdraw,
+//         });
+//     } catch (error) {
+//         console.error('Error fetching rejected players:', error);
+//         return res.status(500).json({
+//             success: false,
+//             message: 'Failed to fetch rejected players.',
+//             error: error.message,
+//         });
+//     }
+// };  
+// // Add a new endpoint to handle approve, withdraw, and reject actions
+// exports.updateWithdrawStatus = async function (req, res) {
+//     try {
+//         const { playerId, action } = req.body;
 
-        let updateFields;
+//         let updateFields;
 
-        switch (action) {
-            case 'approve':
-                updateFields = { isApprove: true, approveAt: new Date() };
-                break;
-            case 'withdraw':
-                updateFields = { isWithdrawn: true, withdrawAt: new Date() };
-                break;
-            case 'reject':
-                updateFields = { isApprove: false, isWithdrawn: false, rejectAt: new Date() };
-                break;
-            default:
-                return res.status(400).json({
-                    success: false,
-                    message: 'Invalid action specified.',
-                });
-        }
+//         switch (action) {
+//             case 'approve':
+//                 updateFields = { isApprove: true, approveAt: new Date() };
+//                 break;
+//             case 'withdraw':
+//                 updateFields = { isWithdrawn: true, withdrawAt: new Date() };
+//                 break;
+//             case 'reject':
+//                 updateFields = { isApprove: false, isWithdrawn: false, rejectAt: new Date() };
+//                 break;
+//             default:
+//                 return res.status(400).json({
+//                     success: false,
+//                     message: 'Invalid action specified.',
+//                 });
+//         }
 
-        // Update the player's status based on the action
-        const updatedPlayer = await Player.findByIdAndUpdate(playerId, updateFields, { new: true });
+//         // Update the player's status based on the action
+//         const updatedPlayer = await Players.findByIdAndUpdate(playerId, updateFields, { new: true });
 
-        return res.status(200).json({
-            success: true,
-            message: 'Player status updated successfully.',
-            updatedPlayer,
-        });
-    } catch (error) {
-        console.error('Error updating player status:', error);
-        return res.status(500).json({
-            success: false,
-            message: 'Failed to update player status.',
-            error: error.message,
-        });
-    }
-};
+//         return res.status(200).json({
+//             success: true,
+//             message: 'Player status updated successfully.',
+//             updatedPlayer,
+//         });
+//     } catch (error) {
+//         console.error('Error updating player status:', error);
+//         return res.status(500).json({
+//             success: false,
+//             message: 'Failed to update player status.',
+//             error: error.message,
+//         });
+//     }
+// };
