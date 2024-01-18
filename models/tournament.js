@@ -41,7 +41,7 @@ const TournamentSchema = mongoose.Schema({
     tournamentType: { type: String }, 
     tournamentStatus: { type: String },
 }, {
-    collection: 'Players',
+    collection: 'tournaments',
     timestamps: true
 });
 
