@@ -16,58 +16,58 @@ const ObjectId = require('mongodb').ObjectId;
 const moment = require('moment'); 
 
 
-exports.userLogin = async function (req, res) {
-  try {
-    const {
-      email,
-      first_name,
-      device_type,
-      device_token,
-      mobile
-    } = req.body;
+// exports.userLogin = async function (req, res) {
+//   try {
+//     const {
+//       email,
+//       first_name,
+//       device_type,
+//       device_token,
+//       mobile
+//     } = req.body;
 
-    // Check if the mobile number already exists in the Players table
-    let existingUser = await Players.findOne({
-      mobile
-    });
+//     // Check if the mobile number already exists in the Players table
+//     let existingUser = await Players.findOne({
+//       mobile
+//     });
 
-    if (existingUser) {
-      // If the user exists, return the existing data without updating
-      return res.status(200).json({
-        success: true,
-        data: existingUser,
-        message: 'User already exists. Returning existing data.',
-      });
-    } else {
-      // If the user doesn't exist, create a new user entry
-      const data = await Players.create({
-        email,
-        first_name,
-        device_type,
-        device_token,
-        mobile,
-      });
+//     if (existingUser) {
+//       // If the user exists, return the existing data without updating
+//       return res.status(200).json({
+//         success: true,
+//         data: existingUser,
+//         message: 'User already exists. Returning existing data.',
+//       });
+//     } else {
+//       // If the user doesn't exist, create a new user entry
+//       const data = await Players.create({
+//         email,
+//         first_name,
+//         device_type,
+//         device_token,
+//         mobile,
+//       });
 
-      const token = jwt.sign({
-        mobile
-      }, process.env.JWT_SECRET, {
-        expiresIn: '1h'
-      }); // Using the secret key from .env
+//       const token = jwt.sign({
+//         mobile
+//       }, process.env.JWT_SECRET, {
+//         expiresIn: '1h'
+//       }); // Using the secret key from .env
 
-      return res.status(200).json({
-        success: true,
-        data,
-        token: token,
-        message: 'New user created.',
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
+//       return res.status(200).json({
+//         success: true,
+//         data,
+//         token: token,
+//         message: 'New user created.',
+//       });
+//     }
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       error: error.message
+//     });
+//   }
+// };
 
 
 const uploadImage = configMulter('playerImage/', [{
