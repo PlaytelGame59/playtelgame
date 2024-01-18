@@ -39,16 +39,16 @@ const PlayerSchema = new mongoose.Schema({
         default: 0
     },
     wallet_amount: {
-        type: Number,
-    default: 0
+        type: String,
+        default: ''
     },
     winning_amount: {
         type: Number,
         default: 0
     },
     bonus_ammount: {
-        type: Number,
-        default: 0
+        type: String,
+        default: ''
     },
     join_code: {
         type: String,
@@ -63,10 +63,6 @@ const PlayerSchema = new mongoose.Schema({
         default: 0
     },
     banned: {
-        type: Boolean,
-        default: false
-    },
-    is_registered: {
         type: Boolean,
         default: false
     },

@@ -21,10 +21,6 @@ const RegisteredTournamentSchema = new mongoose.Schema({
         type: String,
         default: '0' 
     },
-    is_registered: {
-        type: Boolean,
-        default: 1
-    },
     refund: {
         type: String,
         default: '0' 
