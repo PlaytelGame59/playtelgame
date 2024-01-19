@@ -201,7 +201,9 @@ exports.getPlayerProfileImage = async function (req, res) {
 
 exports.getPlayerDetails = async function (req, res) {
   try {
-    const { player_id } = req.body;
+    const {
+      player_id
+    } = req.body;
 
     // Find player by player_id
     const player = await Players.findById(player_id).exec();
@@ -213,7 +215,7 @@ exports.getPlayerDetails = async function (req, res) {
         message: 'Player not found.'
       });
     }
-// console.log("abc");
+    // console.log("abc");
     // Construct the desired response format
     const response = {
       success: true,
@@ -760,13 +762,19 @@ exports.registerTournament = async function (req, res) {
     // Check if the tournament exists
     const tournament = await Tournament.findById(tournament_id);
     if (!tournament) {
-      return res.status(400).json({ success: false, message: 'Tournament not found.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Tournament not found.'
+      });
     }
 
     // Check if the player exists
     const player = await Players.findById(player_id);
     if (!player) {
-      return res.status(400).json({ success: false, message: 'Player not found.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Player not found.'
+      });
     }
 
     // Create a new record in the registeredTournament table
@@ -784,9 +792,9 @@ exports.registerTournament = async function (req, res) {
     // Respond with success message
     return res.status(200).json({
       "success": true,
-      "operator": "creator", 
+      "operator": "creator",
       "room_no": "736453"
-  });
+    });
   } catch (error) {
     console.error('Error registering player for tournament:', error);
     return res.status(500).json({
@@ -1305,17 +1313,30 @@ exports.loadWalletAmount = async function (req, res) {
 
 exports.getTournamentDetails = async function (req, res) {
   try {
-    const { player_id, tournament_id } = req.body;
+    const {
+      player_id,
+      tournament_id
+    } = req.body;
 
     // Check if tournament_id is present in the Tournament table
-    const tournamentData = await Tournament.findOne({ _id: tournament_id });
+    const tournamentData = await Tournament.findOne({
+      _id: tournament_id
+    });
 
     let responseData;
 
     if (tournamentData) {
       // If tournament_id is present, update the response with tournament details
-      const playerData = await RegisteredTournament.findOne({ player_id });
-      const playerCount = await RegisteredTournament.countDocuments({ tournament_id });
+      const playerData = await RegisteredTournament.findOne({
+        $and: [{
+          player_id: player_id
+        }, {
+          tournament_id: tournament_id
+        }]
+      });
+      const playerCount = await RegisteredTournament.countDocuments({
+        tournament_id
+      });
 
       responseData = {
         success: true,
@@ -1325,14 +1346,6 @@ exports.getTournamentDetails = async function (req, res) {
         tournament_id,
         player_id,
       };
-
-      // If player_id is present, update the response with relevant data
-      if (playerData) {
-        responseData = {
-          ...responseData,
-          registered: 1,
-        };
-      }
 
       // Fetch betAmount from tournamentData
       const betAmount = parseFloat(tournamentData.betAmount) || 0; // Convert to float and set a default value if betAmount is undefined
@@ -1391,7 +1404,7 @@ exports.getTournamentDetails = async function (req, res) {
 };
 
 
-exports.getTournamentList =async function (req,res) {
+exports.getTournamentList = async function (req, res) {
   try {
     const tournaments = await Tournament.find({});
 
@@ -1425,16 +1438,26 @@ exports.getTournamentList =async function (req,res) {
 // refund tournament Amount
 exports.refundTournamentAmount = async function (req, res) {
   try {
-    const { player_id, tournament_id, bonusmoney, playmoney } = req.body;
+    const {
+      player_id,
+      tournament_id,
+      bonusmoney,
+      playmoney
+    } = req.body;
 
     const playmoneyNumeric = parseFloat(playmoney);
     const bonusmoneyNumeric = parseFloat(bonusmoney);
 
-    const player = await Players.findOneAndUpdate(
-      { _id: player_id },
-      { $inc: { wallet_amount: playmoneyNumeric, bonus_ammount: bonusmoneyNumeric } },
-      { new: true }
-    );
+    const player = await Players.findOneAndUpdate({
+      _id: player_id
+    }, {
+      $inc: {
+        wallet_amount: playmoneyNumeric,
+        bonus_ammount: bonusmoneyNumeric
+      }
+    }, {
+      new: true
+    });
 
     if (!player) {
       return res.status(404).json({
@@ -1444,11 +1467,14 @@ exports.refundTournamentAmount = async function (req, res) {
     }
 
     // Update registered field in registeredTournament table
-    const updatedRegistration = await RegisteredTournament.findOneAndUpdate(
-      { player_id, tournament_id },
-      { is_registered: 0 },
-      { new: true }
-    );
+    const updatedRegistration = await RegisteredTournament.findOneAndUpdate({
+      player_id,
+      tournament_id
+    }, {
+      is_registered: 0
+    }, {
+      new: true
+    });
 
     if (!updatedRegistration) {
       return res.status(404).json({
@@ -1463,8 +1489,7 @@ exports.refundTournamentAmount = async function (req, res) {
       player,
       updatedRegistration,
     });
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Error in refunding for tournaments:', error);
     res.status(500).json({
       success: false,
@@ -1477,29 +1502,42 @@ exports.refundTournamentAmount = async function (req, res) {
 // game history
 exports.storeGameHistory = async function (req, res) {
   try {
-      const { game_name, bet_amount, win_amount, game_result, no_ofplayers, time } = req.body;
+    const {
+      game_name,
+      bet_amount,
+      win_amount,
+      game_result,
+      no_ofplayers,
+      time
+    } = req.body;
 
-      const newGameHistory = new GameHistory({
-        game_name, 
-        bet_amount, 
-        win_amount, 
-        game_result, 
-        no_ofplayers, 
-        time 
-      });
+    const newGameHistory = new GameHistory({
+      game_name,
+      bet_amount,
+      win_amount,
+      game_result,
+      no_ofplayers,
+      time
+    });
 
-      const savedGameHistory = await newGameHistory.save();
-      // console.log("savedGameHistory", savedGameHistory)
-      
-      res.status(201).json({ status: "success",msg: "Game History data stored successfuly", savedGameHistory});
+    const savedGameHistory = await newGameHistory.save();
+    // console.log("savedGameHistory", savedGameHistory)
+
+    res.status(201).json({
+      status: "success",
+      msg: "Game History data stored successfuly",
+      savedGameHistory
+    });
   } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error'
+    });
   }
 }
 
 // Game History List
-exports.getGameHistoryList =async function (req,res) {
+exports.getGameHistoryList = async function (req, res) {
   try {
     const gameHistoryList = await GameHistory.find()
 
