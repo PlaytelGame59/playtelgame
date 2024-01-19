@@ -1420,3 +1420,55 @@ exports.getTournamentList =async function (req,res) {
     });
   }
 };
+
+// refund tournament Amount
+exports.refundTournamentAmount = async function (req, res) {
+  try {
+    const { player_id, tournament_id, bonusmoney, playmoney } = req.body;
+
+    const playmoneyNumeric = parseFloat(playmoney);
+    const bonusmoneyNumeric = parseFloat(bonusmoney);
+
+    const player = await Players.findOneAndUpdate(
+      { _id: player_id },
+      { $inc: { wallet_amount: playmoneyNumeric, bonus_ammount: bonusmoneyNumeric } },
+      { new: true }
+    );
+
+    if (!player) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found.',
+      });
+    }
+
+    // Update registered field in registeredTournament table
+    const updatedRegistration = await RegisteredTournament.findOneAndUpdate(
+      { player_id, tournament_id },
+      { is_registered: 0 },
+      { new: true }
+    );
+
+    if (!updatedRegistration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not registered for the given tournament.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Wallet and bonus updated successfully.',
+      player,
+      updatedRegistration,
+    });
+  }
+  catch (error) {
+    console.error('Error in refunding for tournaments:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to refund for tournaments.',
+      error: error.message
+    });
+  }
+};

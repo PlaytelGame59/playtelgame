@@ -24,6 +24,9 @@ const RegisteredTournamentSchema = new mongoose.Schema({
     refund: {
         type: String,
         default: '0' 
+    },
+    is_registered: {
+        type: Number
     }
 },{ collection: 'RegisteredTournament', timestamps: true });
 
