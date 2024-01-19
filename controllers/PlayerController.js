@@ -12,6 +12,7 @@ const RegisteredTournament = require('../models/RegisteredTournament');
 const Notification = require('../models/Notification');
 const AdharKYC = require('../models/AdharKYC');
 const WalletHistory = require('../models/WalletHistory');
+const GameHistory = require('../models/GameHistory');
 const ObjectId = require('mongodb').ObjectId;
 
 
@@ -1468,6 +1469,49 @@ exports.refundTournamentAmount = async function (req, res) {
     res.status(500).json({
       success: false,
       message: 'Failed to refund for tournaments.',
+      error: error.message
+    });
+  }
+};
+
+// game history
+exports.storeGameHistory = async function (req, res) {
+  try {
+      const { game_name, bet_amount, win_amount, game_result, no_ofplayers, time } = req.body;
+
+      const newGameHistory = new GameHistory({
+        game_name, 
+        bet_amount, 
+        win_amount, 
+        game_result, 
+        no_ofplayers, 
+        time 
+      });
+
+      const savedGameHistory = await newGameHistory.save();
+      // console.log("savedGameHistory", savedGameHistory)
+      
+      res.status(201).json({ status: "success",msg: "Game History data stored successfuly", savedGameHistory});
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+  }
+}
+
+// Game History List
+exports.getGameHistoryList =async function (req,res) {
+  try {
+    const gameHistoryList = await GameHistory.find()
+
+    res.status(200).json({
+      success: true,
+      gameHistoryList
+    });
+  } catch (error) {
+    console.error('Error fetching game History List:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch game History List',
       error: error.message
     });
   }
