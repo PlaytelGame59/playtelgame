@@ -746,6 +746,58 @@ exports.getNotificationList = async function (req, res) {
 
 // register tournament 
 
+// exports.registerTournament = async function (req, res) {
+//   try {
+//     // Extract data from the request body
+//     const {
+//       tournament_id,
+//       player_id,
+//       play_amount,
+//       bonus_amount,
+//       players_count
+//     } = req.body;
+
+//     // Check if the tournament exists
+//     const tournament = await Tournament.findById(tournament_id);
+//     if (!tournament) {
+//       return res.status(400).json({ success: false, message: 'Tournament not found.' });
+//     }
+
+//     // Check if the player exists
+//     const player = await Players.findById(player_id);
+//     if (!player) {
+//       return res.status(400).json({ success: false, message: 'Player not found.' });
+//     }
+
+//     // Create a new record in the registeredTournament table
+//     const registeredTournament = new RegisteredTournament({
+//       tournament_id,
+//       player_id,
+//       play_amount,
+//       bonus_amount,
+//       players_count
+//     });
+
+//     // Save the record
+//     await registeredTournament.save();
+
+//     // Respond with success message
+//     return res.status(200).json({
+//       "success": true,
+//       "operator": "creator", 
+//       "room_no": "736453"
+//   });
+//   } catch (error) {
+//     console.error('Error registering player for tournament:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to register player for tournament.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
 exports.registerTournament = async function (req, res) {
   try {
     // Extract data from the request body
@@ -764,9 +816,21 @@ exports.registerTournament = async function (req, res) {
     }
 
     // Check if the player exists
-    const player = await Players.findById(player_id);
-    if (!player) {
-      return res.status(400).json({ success: false, message: 'Player not found.' });
+    // const player = await Players.findById({_id:player_id});
+    // if (!player) {
+    //   return res.status(400).json({ success: false, message: 'Player not found.' });
+    // }
+
+    // Check if the tournament interval has passed
+    const tournamentIntervalInSeconds = parseInt(tournament.tournamentInterval) * 60;
+    const currentTime = new Date().getTime();
+    const tournamentStartTime = new Date(tournament.createdAt).getTime();
+    const timeDifference = currentTime - tournamentStartTime;
+    const intervalsPassed = Math.floor(timeDifference / tournamentIntervalInSeconds);
+
+    if (intervalsPassed > 0) {
+      // Update is_registered to 0 if the interval has passed
+      await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered: 0 });
     }
 
     // Create a new record in the registeredTournament table
@@ -775,7 +839,8 @@ exports.registerTournament = async function (req, res) {
       player_id,
       play_amount,
       bonus_amount,
-      players_count
+      players_count,
+      is_registered: 0 // Set is_registered to 1 when registering
     });
 
     // Save the record
@@ -783,10 +848,10 @@ exports.registerTournament = async function (req, res) {
 
     // Respond with success message
     return res.status(200).json({
-      "success": true,
-      "operator": "creator", 
-      "room_no": "736453"
-  });
+      success: true,
+      operator: "creator",
+      room_no: "736453"
+    });
   } catch (error) {
     console.error('Error registering player for tournament:', error);
     return res.status(500).json({

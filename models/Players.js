@@ -62,7 +62,11 @@ const PlayerSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    banned: {
+    is_banned: {
+        type: Boolean,
+        default: false
+    },
+    is_active: {
         type: Boolean,
         default: false
     },

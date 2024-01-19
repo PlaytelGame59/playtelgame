@@ -26,7 +26,8 @@ const RegisteredTournamentSchema = new mongoose.Schema({
         default: '0' 
     },
     is_registered: {
-        type: Number
+        type: Number,
+        default: 1
     }
 },{ collection: 'RegisteredTournament', timestamps: true });
 
