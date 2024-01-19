@@ -22,5 +22,6 @@ router.post('/tournament/registration', playerController.registerTournament);
 router.post('/wallet/load/amount', playerController.loadWalletAmount);
 router.post('/tournament/details', playerController.getTournamentDetails);
 router.get('/tournament/list', playerController.getTournamentList);
+router.post('/refund-tournament-amount', playerController.refundTournamentAmount);
 
 module.exports = router;
