@@ -9,7 +9,11 @@ const AdharKYCSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    aadhar_image: {
+    aadhar_front_image: {
+        type: String, // Assuming you store the image path or URL as a string
+        default: ''    
+    },
+    aadhar_back_image: {
         type: String, // Assuming you store the image path or URL as a string
         default: ''    
     },

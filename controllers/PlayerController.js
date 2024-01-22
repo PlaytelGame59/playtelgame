@@ -997,8 +997,12 @@ exports.deleteNotification = async function (req, res) {
 };
 
 
-const uploadAdharImage = configMulter('playerAdahrImage/', [{
-  name: 'aadhar_image',
+const uploadAdharImage = configMulter('playerAdahrImage/', [ {
+  name: 'aadhar_front_image',
+  maxCount: 1
+},
+{
+  name: 'aadhar_back_image',
   maxCount: 1
 }]);
 
@@ -1025,7 +1029,7 @@ exports.playerAdharImage = async function (req, res) {
       } = req.body;
 
       // Check if player_id is provided
-      if (!player_id || !type) {
+      if (!player_id) {
         return res.status(400).json({
           success: false,
           message: 'Player ID and type are required.'
@@ -1045,12 +1049,14 @@ exports.playerAdharImage = async function (req, res) {
       }
 
       // Save the details in the AdharKYC table
-      const aadhar_image = req.files['aadhar_image'] ? req.files['aadhar_image'][0].path.replace(/^.*playerAdahrImage[\\/]/, 'playerAdahrImage/') : '';
+      const aadhar_front_image = req.files['aadhar_front_image'] ? req.files['aadhar_front_image'][0].path.replace(/^.*playerAdahrImage[\\/]/, 'playerAdahrImage/') : '';
+      const aadhar_back_image = req.files['aadhar_back_image'] ? req.files['aadhar_back_image'][0].path.replace(/^.*playerAdahrImage[\\/]/, 'playerAdahrImage/') : '';
 
       const adharKYC = new AdharKYC({
         player_id: player_id,
         aadhar_no: aadhar_no,
-        aadhar_image: aadhar_image
+        aadhar_front_image: aadhar_front_image,
+        aadhar_back_image: aadhar_back_image
       });
 
       await adharKYC.save();

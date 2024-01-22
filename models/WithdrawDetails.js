@@ -29,8 +29,8 @@ const WithdrawDetailsSchema = new mongoose.Schema({
         default: ''
     },
     status: {
-        type: String,
-        default: ''
+        type: Boolean,
+        default: false
     }
 },{ collection: 'WithdrawDetails', timestamps: true });
 
