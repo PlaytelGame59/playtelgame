@@ -28,6 +28,9 @@ const RegisteredTournamentSchema = new mongoose.Schema({
     is_registered: {
         type: Number,
         default: 1
+    },
+    valid_upto: {
+        type: Date
     }
 },{ collection: 'RegisteredTournament', timestamps: true });
 

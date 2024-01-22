@@ -11,6 +11,7 @@ const Tournament = require('../models/tournament');
 const RegisteredTournament = require('../models/RegisteredTournament');
 const Notification = require('../models/Notification');
 const AdharKYC = require('../models/AdharKYC');
+const PanKYC = require('../models/PanKYC')
 const WalletHistory = require('../models/WalletHistory');
 const GameHistory = require('../models/GameHistory');
 const ObjectId = require('mongodb').ObjectId;
@@ -820,36 +821,39 @@ exports.registerTournament = async function (req, res) {
       });
     }
 
-    // Check if the player exists
-    // const player = await Players.findById({_id:player_id});
-    // if (!player) {
-    //   return res.status(400).json({ success: false, message: 'Player not found.' });
-    // }
-
-    // Check if the tournament interval has passed
     const tournamentIntervalInSeconds = parseInt(tournament.tournamentInterval) * 60;
+
+    const tournamentStartTime = new Date(tournament.createdAt);
+
     const currentTime = new Date().getTime();
-    const tournamentStartTime = new Date(tournament.createdAt).getTime();
-    const timeDifference = currentTime - tournamentStartTime;
-    const intervalsPassed = Math.floor(timeDifference / tournamentIntervalInSeconds);
+    const timeDifference = currentTime - tournamentStartTime.getTime();
+    const elapsedSeconds = timeDifference / 1000;
 
-    if (intervalsPassed > 0) {
-      // Update is_registered to 0 if the interval has passed
+    // Calculate the current interval boundary
+    const currentIntervalStart = Math.floor(elapsedSeconds / tournamentIntervalInSeconds) * tournamentIntervalInSeconds;
+
+    // Calculate the next interval boundary
+    const nextIntervalStart = currentIntervalStart + tournamentIntervalInSeconds;
+
+    const remainingSeconds = nextIntervalStart - elapsedSeconds;
+
+    if (remainingSeconds <= 0) {
+      // Update is_registered to 0 if the remaining time is less than or equal to the tournament interval
       await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered: 0 });
+    } else {
+      // Create a new record in the registeredTournament table
+      const registeredTournament = new RegisteredTournament({
+        tournament_id,
+        player_id,
+        play_amount,
+        bonus_amount,
+        players_count,
+        is_registered: 1
+      });
+
+      // Save the record
+      await registeredTournament.save();
     }
-
-    // Create a new record in the registeredTournament table
-    const registeredTournament = new RegisteredTournament({
-      tournament_id,
-      player_id,
-      play_amount,
-      bonus_amount,
-      players_count,
-      is_registered: 0 // Set is_registered to 1 when registering
-    });
-
-    // Save the record
-    await registeredTournament.save();
 
     // Respond with success message
     return res.status(200).json({
@@ -866,6 +870,8 @@ exports.registerTournament = async function (req, res) {
     });
   }
 };
+
+
 
 exports.getAllNotification = async function (req, res) {
   try {
@@ -885,25 +891,52 @@ exports.getAllNotification = async function (req, res) {
   }
 };
 
-// exports.getLatestWinner = async function(req,res) {
-//   try {
-//     // Find players and sort them based on the creation timestamp in descending order
-//     const latestWinners = await Players.find().sort({ createdAt: -1, winning: -1 }).limit(10); // Adjust the limit as needed
+exports.unregisterPlayerForTournament = async function (req, res) {
+  try {
+    // Extract data from the request body
+    const {
+      tournament_id,
+      player_id,
+      refund,
+      is_registered
+    } = req.body;
 
-//     res.status(200).json({
-//       success: true,
-//       message: 'Latest winners retrieved successfully.',
-//       data: latestWinners
-//     });
-//   } catch (error) {
-//     console.error('Error retrieving Latest winners:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Failed to retrieve Latest winners.',
-//       error: error.message
-//     });
-//   }
-// };
+    // Check if the tournament exists
+    const tournament = await Tournament.findById(tournament_id);
+    if (!tournament) {
+      return res.status(400).json({ success: false, message: 'Tournament not found.' });
+    }
+
+    // Check if the player exists
+    const player = await Players.findById(player_id);
+    if (!player) {
+      return res.status(400).json({ success: false, message: 'Player not found.' });
+    }
+
+    // Update is_registered field in the RegisteredTournament table
+    await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered });
+
+    // If refund is provided, add the refund amount to the player's wallet_amount
+    if (refund && refund > 0) {
+      // Update wallet_amount in the Players table
+      await Players.findByIdAndUpdate(player_id, { $inc: { wallet_amount: refund } });
+    }
+
+    // Respond with success message
+    return res.status(200).json({
+      success: true,
+      message: "Player unregistered successfully"
+    });
+  } catch (error) {
+    console.error('Error unregistering player for tournament:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to unregister player for tournament.',
+      error: error.message
+    });
+  }
+};
+
 
 exports.getLatestWinner = async function (req, res) {
   try {
@@ -988,7 +1021,7 @@ exports.playerAdharImage = async function (req, res) {
     try {
       const {
         player_id,
-        type
+        aadhar_no
       } = req.body;
 
       // Check if player_id is provided
@@ -1016,7 +1049,7 @@ exports.playerAdharImage = async function (req, res) {
 
       const adharKYC = new AdharKYC({
         player_id: player_id,
-        type: type,
+        aadhar_no: aadhar_no,
         aadhar_image: aadhar_image
       });
 
@@ -1615,4 +1648,78 @@ exports.getGameHistoryList = async function (req, res) {
       error: error.message
     });
   }
+};
+
+const uploadPanImage = configMulter('playerPanImage/', [{
+  name: 'pan_image',
+  maxCount: 1
+}]);
+
+exports.playerPanImage = async function (req, res) {
+  uploadPanImage(req, res, async function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json({
+        success: false,
+        message: 'Multer error',
+        error: err
+      });
+    } else if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error uploading file',
+        error: err
+      });
+    }
+
+    try {
+      const {
+        player_id,
+        pan_no
+      } = req.body;
+
+      // Check if player_id is provided
+      if (!player_id || !type) {
+        return res.status(400).json({
+          success: false,
+          message: 'Player ID and type are required.'
+        });
+      }
+
+      // Check if the player with the given player_id exists
+      const existingPlayer = await Players.findOne({
+        _id: player_id
+      });
+
+      if (!existingPlayer) {
+        return res.status(404).json({
+          success: false,
+          message: 'Player not found.'
+        });
+      }
+
+      // Save the details in the AdharKYC table
+      const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
+
+      const panKYC = new PanKYC({
+        player_id: player_id,
+        pan_no: pan_no,
+        pan_image: pan_image
+      });
+
+      await panKYC.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'panKYC details saved successfully.',
+        data: panKYC
+      });
+    } catch (error) {
+      console.error('Error saving panKYC details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to save panKYC details.',
+        error: error.message
+      });
+    }
+  });
 };

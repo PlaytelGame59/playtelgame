@@ -19,11 +19,13 @@ router.post('/players/notification/delete', playerController.deleteNotification)
 router.post('/wallet/history', playerController.getPlayerWalletHistory);
 router.get('/get/latest/winner', playerController.getLatestWinner);
 router.post('/tournament/registration', playerController.registerTournament);
+router.post('/unregister-player', playerController.unregisterPlayerForTournament);
 router.post('/wallet/load/amount', playerController.loadWalletAmount);
 router.post('/tournament/details', playerController.getTournamentDetails);
 router.get('/tournament/list', playerController.getTournamentList);
 router.post('/refund-tournament-amount', playerController.refundTournamentAmount);
 router.post('/store/game/history', playerController.storeGameHistory);
 router.get('/game/history/list', playerController.getGameHistoryList);
+router.post('/pan-upload', playerController.playerPanImage);
 
 module.exports = router;
