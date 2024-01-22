@@ -5,7 +5,10 @@ const gameHistorySchema = new mongoose.Schema({
         type: String,
         default: ''
       },
-
+      player_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Players'
+      },
       bet_amount: {
         type: Number,
         default: 0.0

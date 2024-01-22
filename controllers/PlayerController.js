@@ -1604,6 +1604,7 @@ exports.refundTournamentAmount = async function (req, res) {
 exports.storeGameHistory = async function (req, res) {
   try {
     const {
+      user_id,
       game_name,
       bet_amount,
       win_amount,
@@ -1612,7 +1613,17 @@ exports.storeGameHistory = async function (req, res) {
       time
     } = req.body;
 
+    // // Check if the player_id exists in the Players table
+    // const player = await Players.findById(user_id);
+    // if (!player) {
+    //   return res.status(400).json({
+    //     status: 'error',
+    //     message: 'Player not found with the provided player_id.'
+    //   });
+    // }
+
     const newGameHistory = new GameHistory({
+      player_id: user_id,
       game_name,
       bet_amount,
       win_amount,
@@ -1622,25 +1633,34 @@ exports.storeGameHistory = async function (req, res) {
     });
 
     const savedGameHistory = await newGameHistory.save();
-    // console.log("savedGameHistory", savedGameHistory)
 
     res.status(201).json({
-      status: "success",
-      msg: "Game History data stored successfuly",
+      status: 'success',
+      message: 'Game History data stored successfully',
       savedGameHistory
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
+      status: 'error',
       message: 'Internal Server Error'
     });
   }
-}
-
+};
 // Game History List
 exports.getGameHistoryList = async function (req, res) {
   try {
-    const gameHistoryList = await GameHistory.find()
+    const { player_id } = req.body;
+
+    // Check if player_id is provided
+    if (!player_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a player_id.'
+      });
+    }
+
+    const gameHistoryList = await GameHistory.find({ player_id });
 
     res.status(200).json({
       success: true,

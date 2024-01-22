@@ -839,6 +839,7 @@ exports.getRejectedWithdraw = async function (req, res) {
     });
   }
 };
+
 // Add a new endpoint to handle approve, withdraw, and reject actions
 exports.updateWithdrawStatus = async function (req, res) {
   try {
