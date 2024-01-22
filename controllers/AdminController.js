@@ -1,17 +1,21 @@
 const Admin = require('../models/Admin');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
-const Tournament = require("../models/Tournment");
-const Disclamer = require('../models/Disclamer');
+const Tournament = require("../models/tournament");
+const Disclamer = require('../models/Disclaimer');
 const Notification = require('../models/Notification');
 const configMulter = require('../configMulter')
 const multer = require('multer');
-const Player = require('../models/Player');
+const Players = require('../models/Players');
 const Withdraw = require('../models/Withdraw');
 const Transaction  = require('../models/Transaction')
-const User = require('../models/User');
+const WithdrawDetails = require('../models/WithdrawDetails');
 const Wallet = require('../models/Wallet');
 const cron = require('node-cron');
+const RegisteredTournament = require('../models/RegisteredTournament')
+const AdharKYC = require('../models/AdharKYC');
+
+
 
 // Admin module <----------------------->
 exports.signUp = async function (req, res) {
@@ -81,76 +85,8 @@ exports.resetPassword = async function (req, res) {
     }
 };
 
-// exports.addTorunment = async function (req, res) {
-//     try {
-//         const {
-//             tournamentName,
-//             betAmount,
-//             noPlayers,
-//             winningAmount,
-//             tournamentInterval,
-//             tournamentType,
-//             tournamentStatus
-//         } = req.body;
 
-//         // Set winnerCount based on noPlayers
-//         let winnerCount;
-//         if (noPlayers === 2 || noPlayers === 3) {
-//             winnerCount = 1;
-//         } else if (noPlayers === 4) {
-//             winnerCount = 3;
-//         } else {
-//             // Handle other values if needed
-//             winnerCount = 0; // Default value
-//         }
-
-//         // Create a new instance of the TournamentModel
-//         const newTournament = new Tournament({
-//             tournamentName,
-//             betAmount,
-//             noPlayers,
-//             winningAmount,
-//             winnerCount,
-//             tournamentInterval,
-//             tournamentType,
-//             tournamentStatus
-//         });
-
-//         // Save the new tournament to the database
-//         const savedTournament = await newTournament.save();
-
-//         // Set up a cron job for the tournament timer
-//         cron.schedule(`*/${tournamentInterval} * * * *`, () => {
-//             // Timer logic: countdown from tournamentInterval to 0 and restart
-//             let currentCountdown = tournamentInterval * 60; // Convert minutes to seconds
-//             const countdownInterval = setInterval(() => {
-//                 console.log(`Countdown: ${currentCountdown} seconds`);
-
-//                 if (currentCountdown <= 0) {
-//                     // Additional logic when the timer finishes (e.g., trigger an event)
-//                     console.log('Timer finished!');
-
-//                     // Restart the countdown
-//                     currentCountdown = tournamentInterval * 60;
-//                 } else {
-//                     currentCountdown--;
-//                 }
-//             }, 1000);
-
-//             // Stop the interval after the specified tournamentInterval
-//             setTimeout(() => {
-//                 clearInterval(countdownInterval);
-//             }, tournamentInterval * 60 * 1000);
-//         });
-
-//         // Respond with the saved tournament data
-//         res.status(201).json({ msg: "add tournament data successfully", savedTournament, status: "success" });
-//     } catch (error) {
-//         console.error(error);
-//         res.status(500).json({ message: 'Internal Server Error' });
-//     }
-// };
-
+// Tournament Module
 exports.addTorunment = async function (req, res) {
     try {
         const { 
@@ -209,18 +145,51 @@ exports.addTorunment = async function (req, res) {
     }
 }
 
-exports.getTorunment = async function (req, res) {
-    try {
-        // Fetch all tournament from the database
-        const tournament = await Tournament.find();
+// // this api match with player controller
+// exports.getTournamentList = async function (req, res) {
+//     try {
+//         // Fetch all tournament from the database
+//         const tournament = await Tournament.find({});
 
-        // Respond with the list of tournament
-        res.status(200).json({ msg: 'sucessfull', tournament });  
+//         // Respond with the list of tournament
+//         res.status(200).json({ msg: 'sucessfull', tournament });  
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal Server Error', error });
+//     }
+// }
+
+exports.getTournamentList =async function (req,res) {
+    try {
+        const tournaments = await Tournament.find({});
+    
+        const formattedTournaments = tournaments.map(tournament => ({
+            id: tournament._id,
+            tournament_name: tournament.tournamentName,
+            bet_amount: tournament.betAmount,
+            no_players: tournament.noPlayers,
+            no_of_winners: tournament.winnerCount,
+            tournament_interval: tournament.tournamentInterval,
+            four_player_winning_1: tournament.winningAmount1,
+            four_player_winning_2: tournament.winningAmount2,
+            four_player_winning_3: tournament.winningAmount3,
+            two_player_winning: tournament.winningAmount // Adjust this based on your schema
+        }));
+    
+        res.status(200).json({
+            success: true,
+            data: formattedTournaments
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error', error });
+        console.error('Error fetching tournaments:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch tournaments.',
+            error: error.message
+        });
     }
-}
+};
+
 exports.updateTournament = async function(req, res){
     try {
         const  tournamentId  = req.body.tournamentId;
@@ -301,7 +270,6 @@ exports.deleteTorunment = async function (req, res) {
         return res.status(500).json({ status: 'error', msg: 'Internal server error', error });
     }
 }
-
 exports.addDisclamer = async function (req, res) {
     try {
         const { addDisclamer } = req.body;
@@ -324,48 +292,15 @@ exports.addDisclamer = async function (req, res) {
 
 
 // Player module <----------------------->
-exports.addPlayer = async function (req, res) {
-    try {
-        const {  player_image, name, email, mobileNo } = req.body;
-        // email: { type: String }, 
-        // first_name: { type: String}, 
-        // device_type: { type: String}, 
-        // device_token: { type: String }, 
-        // user_type: { type: Number },
-        // image: { type: String }, 
-        // mobile: { type: String },
-        // amount: { type: String },
-        // winningAmount: { type: String },
-        // const { player_image } = req.file;
-        // Create a new instance of the Player
-        // const base64Data = req.file.buffer.toString('base64');
 
-        const newPlayer = new Player({
-            // playerId, 
-            name, 
-            email, 
-            player_image, 
-            mobileNo,
-            created_at: new Date(),
-        });
 
-        // Save the new Player to the database
-        const savedPlayer = await newPlayer.save();
-        console.log(savedPlayer);
-        // Respond with the saved Player data
-        res.status(201).json({ status: 'success', savedPlayer});
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Internal Server Error' });
-    }
-}  
 exports.getPlayer = async function (rea, res) {
     try {
         // Fetch all tournament from the database
-        const player = await Player.find();
+        const player = await Players.find({});
 
         // Respond with the list of player
-        res.status(200).json({ msg: 'sucessfull', player });  
+        res.status(200).json({ msg: 'successfull', player });  
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal Server Error', error });
@@ -375,18 +310,20 @@ exports.updatePlayer = async function (req, res) {
 
     try {
         const playerId = req.body.playerId;
-        const {  name, email, player_image, mobileNo } = req.body;
+        const { first_name, email, 
+            // player_image, 
+            mobile } = req.body;
     
         // Find the player by ID
-        let player = await Player.findById(playerId);
+        let player = await Players.findById(playerId);
     
         if(player) {
             // Update the player field
             // player.playId = playId;   
-            player.name = name;
+            player.first_name = first_name;
             player.email = email;
-            player.player_image = player_image;
-            player.mobileNo = mobileNo
+            // player.player_image = player_image;
+            player.mobile = mobile
             await player.save();
     
             return res.status(200).json({ success: true, message: 'player updated successfully.', playerId: player._id, status: 'success' });
@@ -402,7 +339,7 @@ exports.deletePlayer = async function (req, res) {
     try {
         const playerId = req.body.playerId
     
-        const deletedPlayers = await Player.findByIdAndDelete(playerId);     
+        const deletedPlayers = await Players.findByIdAndDelete(playerId);     
     
         if(!deletedPlayers) {
             return res.status(404).json({ status: 'error', msg: 'Players not found' });
@@ -414,22 +351,103 @@ exports.deletePlayer = async function (req, res) {
         return res.status(500).json({ status: 'error', msg: 'Internal server error', error });
     }
 }
-exports.getleaderboard = async function (req, res) {
+
+exports.getDetailPlayerReport = async (req, res) => {
     try {
-      // Fetch users from the database, sorted by a relevant metric (e.g., amount)
-      const leaderboard = await Player.find().sort({ amount: -1 }).limit(4);
+        // Fetch player reports and populate tournament and withdraw details
+        const playerReports = await RegisteredTournament.find()
+            .populate({
+                path: 'player_id',
+                select: 'first_name join_code wallet_amount no_of_total_win no_of_loose bonus_ammount amt_withdraw',
+            })
+            .populate({
+                path: 'tournament_id',
+                select: 'winnerCount',
+            })
+            // .populate({
+            //     path: 'withdrawDetails', // Specify the path to populate
+            //     model: 'WithdrawDetails', // Specify the model to use for populating
+            //     select: 'amt_withdraw trans_id status', // Specify the fields to select from the WithdrawDetails collection
+            // })
+            .exec();
+
+        // Your logic to filter, process, or modify the player reports goes here
+        // const modifiedPlayerReports = playerReports.map((playerReport) => {
+        //     // Example: Add a new field 'totalAmount' by summing 'wallet_amount' and 'winning_amount'
+        //     playerReport.totalAmount = playerReport.wallet_amount + playerReport.winning_amount;
+        //     return playerReport;
+        // });
+          // Parse noPlayers as an integer before comparison
+        //   const noPlayers = /* define or get the value of noPlayers */;
+        //   const parsedNoPlayers = parseInt(winnerCount);
   
-      // You can customize the sorting and limit based on your application's requirements
+        //   // Set winnerCount based on noPlayers
+        //   let winnerCount;
+        //   if (parsedNoPlayers === 2 || parsedNoPlayers === 3) {
+        //       winnerCount = 1;
+        //   } else if (parsedNoPlayers === 4) {
+        //       winnerCount = 3;
+        //   } else {
+        //       // Handle other values if needed
+        //       winnerCount = 0; // Default value
+        //   }
   
-      return res.status(200).json({ success: true, leaderboard });
+        //   console.log("noPlayers:", parsedNoPlayers);
+        //   console.log("winnerCount:", winnerCount);
+
+        // Respond with the list of player reports and details
+        res.status(200).json({
+            success: true,
+            playerReports,
+        });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ success: false, message: "Internal Server Error" });
+        console.error('Error fetching and processing player reports:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch player reports.',
+            error: error.message,
+        });
     }
 };
+// exports.getleaderboard = async function (req, res) {
+//     try {
+//         // Fetch users from the database, sorted by a relevant metric (e.g., amount)
+//         const leaderboard = await Player.find().sort({ amount: -1 }).limit(4);
+    
+//         // You can customize the sorting and limit based on your application's requirements
+    
+//         return res.status(200).json({ success: true, leaderboard });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ success: false, message: "Internal Server Error" });
+//     }
+// };
+
+exports.getleaderboard = async function (req, res) {
+    try {
+        // Fetch users from the database, sorted by a relevant metric (e.g., amount)
+        const leaderboard = await Player.find().sort({
+            wallet_amount: -1
+        }).limit(10);
+
+        // You can customize the sorting and limit based on your application's requirements
+    
+        return res.status(200).json({
+            success: true,
+            leaderboard
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+};
+
 exports.getactivePlayer = async function (req, res) {
     try {
-        const activePlayers = await Player.find({ isActive: true });
+        const activePlayers = await Players.find({ is_active: true });
 
         return res.status(200).json({
             success: true,
@@ -448,18 +466,18 @@ exports.getactivePlayer = async function (req, res) {
 // Update player status endpoint
 exports.updateBanned = async function (req, res) {
     try {
-        const { playerId, isBanned } = req.body;
+        const { playerId, is_banned } = req.body;
         console.log('Request Body:', req.body);
 
         // Validate input
-        if (!playerId || isBanned === undefined) {
-            return res.status(400).json({ error: 'Invalid request. playerId and isBanned are required.' });
+        if (!playerId || is_banned === undefined) {
+            return res.status(400).json({ error: 'Invalid request. playerId and is_banned are required.' });
         }
 
       // Update player status in the database
-        const updatedPlayer = await Player.findByIdAndUpdate(
+        const updatedPlayer = await Players.findByIdAndUpdate(
             playerId,
-            { isBanned },
+            { is_banned },
             { new: true }
         );
 
@@ -472,13 +490,14 @@ exports.updateBanned = async function (req, res) {
         console.error(error);
         return res.status(500).json({ error: 'Internal Server Error' });
     }
-
 }
+
+
 //report
 // banned player
 exports.getBannedPlayers = async function (req, res) {
     try {
-        const bannedPlayers = await Player.find({ isBanned: 1 }); // Fetch players where isBanned is 1 (true).
+        const bannedPlayers = await Players.find({ is_banned: true }); // Fetch players where isBanned is 1 (true).
 
         return res.status(200).json({
             success: true,
@@ -494,8 +513,6 @@ exports.getBannedPlayers = async function (req, res) {
         });
     }
 }
-
-
 
 // notification module <----------------------->
 exports.getNotification = async function (rea, res) {
@@ -513,42 +530,103 @@ exports.getNotification = async function (rea, res) {
 const uploadImage = configMulter('notificationImage/', [
     { name: 'notificationImg', maxCount: 1 }
 ]);
-// add_notification
+
+// Add the following lines at the top of your file
+const admin = require('firebase-admin');
+// const RegisteredTournament = require('../models/RegisteredTournament');
+// const serviceAccount = require('./path/to/your/firebase/serviceAccountKey.json');
+// const serviceAccount = require('../serviceAccountKey.json');
+// console.log('Service Account:', serviceAccount);
+
+
+admin.initializeApp({
+//   credential: admin.credential.cert(serviceAccount),
+  databaseURL: 'https://your-firebase-project-id.firebaseio.com', // Replace with your Firebase project URL
+});
+
+
 exports.addNotification = async function (req, res) {
-    uploadImage(req, res, async function (err) {
-        if (err instanceof multer.MulterError) {
-            return res.status(500).json({ success: false, message: 'Multer error', error: err });
-        } else if (err) {
-            return res.status(500).json({ success: false, message: 'Error uploading file', error: err });
-        }
+  uploadImage(req, res, async function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json({ success: false, message: 'Multer error', error: err });
+    } else if (err) {
+      return res.status(500).json({ success: false, message: 'Error uploading file', error: err });
+    }
 
-        try {
-            console.log('After Multer:', req.files);
-            const { list_id, notificationTitle, notificationMessage } = req.body;
+    try {
+      console.log('After Multer:', req.files);
+      const { list_id, notificationTitle, notificationMessage } = req.body;
 
-            const notificationImg = req.files && req.files['notificationImg']
-                ? req.files['notificationImg'][0].path.replace(/^.*notificationImage[\\/]/, 'notificationImage/')
-                : '';
+      const notificationImg = req.files && req.files['notificationImg']
+        ? req.files['notificationImg'][0].path.replace(/^.*notificationImage[\\/]/, 'notificationImage/')
+        : '';
 
-            console.log('notificationImg:', notificationImg);
+      console.log('notificationImg:', notificationImg);
 
-            const newNotification = new Notification({
-                list_id,
-                notificationTitle,
-                notificationMessage,
-                notificationImg: notificationImg,
-            });
+      const newNotification = new Notification({
+        list_id,
+        notificationTitle,
+        notificationMessage,
+        notificationImg: notificationImg,
+      });
 
-            const savedNotification = await newNotification.save();
-            res.status(201).json({ status: 'success', savedNotification });
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
-        }
-    });
+      const savedNotification = await newNotification.save();
+
+      // Send push notification
+      const message = {
+        data: {
+          title: notificationTitle,
+          body: notificationMessage,
+          image: notificationImg, // Optional: You can send an image URL
+        },
+        topic: 'allDevices', // Replace with your FCM topic or device token
+      };
+
+      const response = await admin.messaging().send(message);
+      console.log('Successfully sent message:', response);
+
+      res.status(201).json({ status: 'success', savedNotification });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
 };
 
+// // add_notification
+// exports.addNotification = async function (req, res) {
+//     uploadImage(req, res, async function (err) {
+//         if (err instanceof multer.MulterError) {
+//             return res.status(500).json({ success: false, message: 'Multer error', error: err });
+//         } else if (err) {
+//             return res.status(500).json({ success: false, message: 'Error uploading file', error: err });
+//         }
 
+//         try {
+//             console.log('After Multer:', req.files);
+//             const { list_id, notificationTitle, notificationMessage } = req.body;
+
+//             const notificationImg = req.files && req.files['notificationImg']
+//                 ? req.files['notificationImg'][0].path.replace(/^.*notificationImage[\\/]/, 'notificationImage/')
+//                 : '';
+
+//             console.log('notificationImg:', notificationImg);
+
+//             const newNotification = new Notification({
+//                 list_id,
+//                 notificationTitle,
+//                 notificationMessage,
+//                 notificationImg: notificationImg,
+//             });
+
+//             const savedNotification = await newNotification.save();
+//             res.status(201).json({ status: 'success', savedNotification });
+//         } catch (error) {
+//             console.error(error);
+//             res.status(500).json({ message: 'Internal Server Error' });
+//         }
+//     });
+// };
 
 // Transaction module <----------------------->
 exports.getTransaction = async function (rea, res) {
@@ -604,7 +682,7 @@ exports.addWithdrawRequestList = async function (req, res) {
         // Validate and process the playerId and amount as needed
 
         // Example: Find the player by playerId to associate with the withdrawal request
-        const player = await Player.findById(playerId);
+        const player = await Players.findById(playerId);
         if (!player) {
             return res.status(404).json({
                 success: false,
@@ -644,11 +722,19 @@ exports.addWithdrawRequestList = async function (req, res) {
 exports.getWithdrawRequestList = async function (req, res) {
     try {
         // Fetch withdrawal requests and populate player details
-        const withdrawalRequests = await Withdraw.find()
-            .populate('player_id', 'playerId playerName email') // Add fields you want to retrieve for the player
-            .exec();
-
-        // Your logic to filter, process, or modify the withdrawal requests goes here
+        const withdrawalRequests = await WithdrawDetails.find()
+            .populate({
+                path: 'player_id',
+                select: 'first_name wallet_amount',
+            })
+            .exec();   
+    
+        // // Your logic to filter, process, or modify the withdrawal requests goes here
+        // const modifiedWithdrawalRequests = withdrawalRequests.map((withdrawal) => {
+        //     // Example: Add a new field 'totalAmount' by summing 'wallet_amount' and 'winning_amount'
+        //     withdrawal.totalAmount = withdrawal.wallet_amount + withdrawal.winning_amount;
+        //     return withdrawal;
+        // });
 
         // Respond with the list of withdrawal requests and player details
         res.status(200).json({
@@ -746,3 +832,128 @@ exports.updateWithdrawStatus = async function (req, res) {
         });
     }
 };
+
+
+
+// const mongoose = require('mongoose');
+// const WithdrawDetails = require('../models/WithdrawDetails'); // Import your model
+
+// exports.getWithdrawHistory = async function (req, res) {
+//   try {
+//     const { player_id } = req.body;
+
+//     // Find player by player_id
+//     if (!mongoose.Types.ObjectId.isValid(player_id)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'player_id is not valid',
+//       });
+//     }
+
+//     const withdrawHistory = await WithdrawDetails.find({ player_id: player_id });
+
+//     if (!withdrawHistory || withdrawHistory.length === 0) {
+//       return res.status(200).json({
+//         success: false,
+//         message: 'Withdrawal History not found.',
+//       });
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       withdrawHistory,
+//     });
+//   } catch (error) {
+//     console.error('Error fetching withdrawal history:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch withdrawal history.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+// Aadhar Kyc api
+
+// Assuming you have already set up your Express app and imported necessary modules
+// const AdharKYC = require('../models/AdharKYC');
+const PanKYC = require('../models/PanKYC');
+
+// Assuming you have already set up your Express app and imported necessary modules
+
+// Endpoint to get Aadhar KYC and Pan KYC data for a specific player
+exports.getKYCData = async function (req, res) {
+    try {
+        const playerId = req.body.playerId;
+
+        // Fetch Aadhar KYC data
+        const adharKYCData = await AdharKYC.find({ player_id: playerId });
+
+        // Fetch Pan KYC data
+        const panKYCData = await PanKYC.find({ player_id: playerId });
+
+        // Combine both datasets or send them separately based on your requirement
+        const combinedData = {
+            adharKYCData: adharKYCData,
+            panKYCData: panKYCData
+        };
+
+        res.json({ success: true, combinedData });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+
+// // Endpoint to update Aadhar KYC status
+// router.post('/adhar-kyc/:id', async (req, res) => {
+//     try {
+//         const adharKYC = await AdharKYC.findById(req.params.id);
+//         if (!adharKYC) return res.status(404).json({ message: 'Aadhar KYC not found' });
+
+//         // Assuming 'false' is the default status and 'true' indicates approval
+//         if (!adharKYC.status) {
+//             // If the status is 'false', update it to 'true'
+//             adharKYC.status = true;
+//             await adharKYC.save();
+//             res.json({ message: 'Aadhar KYC approved successfully' });
+//         } else {
+//             // If the status is already 'true', send a message indicating it's already approved
+//             res.json({ message: 'Aadhar KYC is already approved' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// });
+
+
+// Assuming you have already set up your Express app and imported necessary modules
+// const PanKYC = require('../models/PanKYC');
+
+// // Endpoint to get all Pan KYC data
+// router.get('/pan-kyc', async (req, res) => {
+//     try {
+//         const panKYCData = await PanKYC.find();
+//         res.json(panKYCData);
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// });
+
+// // Endpoint to update Pan KYC status
+// router.patch('/pan-kyc/:id', async (req, res) => {
+//     try {
+//         const panKYC = await PanKYC.findById(req.params.id);
+//         if (!panKYC) return res.status(404).json({ message: 'Pan KYC not found' });
+
+//         panKYC.status = req.body.status;
+//         await panKYC.save();
+
+//         res.json(panKYC);
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// });
+
+// Pan kyc api

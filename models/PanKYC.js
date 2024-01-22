@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const AdharKYCSchema = new mongoose.Schema({
+const PanKYCSchema = new mongoose.Schema({
     player_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Players'
@@ -9,11 +9,11 @@ const AdharKYCSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    aadhar_image: {
+    pan_image: {
         type: String, // Assuming you store the image path or URL as a string
         default: ''    
     },
-    aadhar_no: {
+    pan_no: {
         type: String, // Assuming you store the image path or URL as a string
         default: ''    
     },
@@ -27,6 +27,6 @@ const AdharKYCSchema = new mongoose.Schema({
     },
 });
 
-const AdharKYC = mongoose.model('AdharKYC', AdharKYCSchema);
+const PanKYC = mongoose.model('PanKYC', PanKYCSchema);
 
-module.exports = AdharKYC;
+module.exports = PanKYC;

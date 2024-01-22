@@ -8,15 +8,16 @@ const TournamentSchema = mongoose.Schema({
     betAmount: { 
         type: String,
         default:"0"
-     }, 
+    }, 
     noPlayers: { 
         type: String,
         default:"0"
-     }, 
+    }, 
 
     winningAmount: { 
         type: String,
-        default:"0" },
+        default:"0" 
+    },
 
     winnerCount: { 
         type: String,
@@ -41,7 +42,7 @@ const TournamentSchema = mongoose.Schema({
     tournamentType: { type: String }, 
     tournamentStatus: { type: String },
 }, {
-    collection: 'Players',
+    collection: 'tournaments',
     timestamps: true
 });
 

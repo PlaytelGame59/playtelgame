@@ -1,10 +1,11 @@
 const mongoose = require('mongoose');
+const Player = require('../models/Players')
 
 const NotificationSchema = new mongoose.Schema({
     player_Ids: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Players',
-      }],
+        ref: 'Player',
+    }],
     notificationTitle: {
         type: String,
         required: true,

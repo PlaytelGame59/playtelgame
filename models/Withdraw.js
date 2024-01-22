@@ -1,8 +1,8 @@
 const mongoose = require('mongoose')
-const Player = require('../models/Player');
+const Players = require('../models/Players');
 
 const WithdrawSchema = mongoose.Schema({
-    player_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Player' },
+    player_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Players' },
 
     amount: { type: Number, required: true },
     status: { type: String, default: 'pending' },

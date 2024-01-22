@@ -7,7 +7,7 @@ const RegisteredTournamentSchema = new mongoose.Schema({
     },
     tournament_id: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tournment'
+        ref: 'tournament'
     },
     bonus_amount: {
         type: String,

@@ -1,20 +1,19 @@
 const mongoose = require('mongoose')
+const Player = require('../models/Players')
 
 const TransactionSchema = mongoose.Schema({
-    playerId: { type: String, required: true }, 
+    player_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Player' },
     amount: { type: Number, required: true }, 
     txnDateTime: { type: Date, required: true },
     type: { type: String, required: true }, 
     txnBy: { type: String, required: true },
     // notes: { type: String, required: true },
     // walletType: { type: String, required: true },
-    // userId: { type: String, required: true } 
-},
-// {
-//     timestamps: true, // This will add createdAt and updatedAt fields
-// }
+}, {
+    timestamps: true
+}
 )
 
-const TransactionModel = mongoose.model('transaction', TransactionSchema)
+const Transaction = mongoose.model('transaction', TransactionSchema)
 
-module.exports = { TransactionModel }
+module.exports = Transaction 

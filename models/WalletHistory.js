@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Tournment = require('./tournament');
+const Tournment = require('../models/tournament');
 
 const WalletHistorySchema = new mongoose.Schema({
     player_id: {

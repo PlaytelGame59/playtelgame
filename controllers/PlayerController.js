@@ -328,7 +328,6 @@ exports.updatePlayerName = async function (req, res) {
   }
 };
 
-
 exports.sendFriendRequest = async function (req, res) {
   try {
     const {

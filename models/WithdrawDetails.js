@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const Players = require('../models/Players');
+
 
 const WithdrawDetailsSchema = new mongoose.Schema({
     player_id: {
