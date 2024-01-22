@@ -409,6 +409,7 @@ exports.getDetailPlayerReport = async (req, res) => {
         });
     }
 };
+
 // exports.getleaderboard = async function (req, res) {
 //     try {
 //         // Fetch users from the database, sorted by a relevant metric (e.g., amount)
@@ -491,7 +492,6 @@ exports.updateBanned = async function (req, res) {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 }
-
 
 //report
 // banned player
@@ -728,14 +728,6 @@ exports.getWithdrawRequestList = async function (req, res) {
                 select: 'first_name wallet_amount',
             })
             .exec();   
-    
-        // // Your logic to filter, process, or modify the withdrawal requests goes here
-        // const modifiedWithdrawalRequests = withdrawalRequests.map((withdrawal) => {
-        //     // Example: Add a new field 'totalAmount' by summing 'wallet_amount' and 'winning_amount'
-        //     withdrawal.totalAmount = withdrawal.wallet_amount + withdrawal.winning_amount;
-        //     return withdrawal;
-        // });
-
         // Respond with the list of withdrawal requests and player details
         res.status(200).json({
             success: true,
@@ -750,6 +742,37 @@ exports.getWithdrawRequestList = async function (req, res) {
         });
     }
 };
+
+// updateWithdrawStatus
+// Update player status endpoint
+exports.updateWithdrawStatus = async function (req, res) {
+    try {
+        const { playerId, status } = req.body;
+        console.log('Request Body:', req.body);
+
+        // Validate input
+        if (!playerId || status === undefined) {
+            return res.status(400).json({ error: 'Invalid request. playerId and status are required.' });
+        }
+
+      // Update player status in the database
+        const updatedPlayer = await Players.findByIdAndUpdate(
+            playerId,
+            { status },
+            { new: true }
+        );
+
+        if(!updatedPlayer) {
+            return res.status(404).json({ error: 'Player not found.' });
+        }
+
+        return res.status(200).json(updatedPlayer);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
 
 exports.getapproveWithdraw = async function (req, res) {
     try {

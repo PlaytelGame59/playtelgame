@@ -24,6 +24,7 @@ router.get('/players-list', adminController.getPlayer);
 router.get('/players-report', adminController.getDetailPlayerReport); // getDetailPlayerReport
 router.post('/update-players', adminController.updatePlayer);
 router.post('/delete-players-data', adminController.deletePlayer);
+
 router.post('/update-player-status', adminController.updateBanned)
 
 // dfdsfds
@@ -34,6 +35,7 @@ router.get('/active', adminController.getactivePlayer)
 router.get('/banned-player', adminController.getBannedPlayers)
 
 router.post('/add-withdraw-request', adminController.addWithdrawRequestList)
+router.post('/update-withdraw-request', adminController.updateBanned)
 router.get('/get-withdrawlist', adminController.getWithdrawRequestList)  // withdrawRequestList
 router.get('/approve-withdraw', adminController.getapproveWithdraw)  // getapproveWithdraw
 router.get('/reject-withdraw', adminController.getRejectedWithdraw) // getRejectedWithdraw
