@@ -834,12 +834,20 @@ exports.registerTournament = async function (req, res) {
 
     // Calculate the next interval boundary
     const nextIntervalStart = currentIntervalStart + tournamentIntervalInSeconds;
+    console.log("nextIntervalStart", new Date(nextIntervalStart * 1000))
 
     const remainingSeconds = nextIntervalStart - elapsedSeconds;
 
+    console.log(currentTime + (remainingSeconds * 1000))
+    const valid_upto = new Date(currentTime + (remainingSeconds * 1000))
     if (remainingSeconds <= 0) {
       // Update is_registered to 0 if the remaining time is less than or equal to the tournament interval
-      await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered: 0 });
+      await RegisteredTournament.findOneAndUpdate({
+        tournament_id,
+        player_id
+      }, {
+        is_registered: 0
+      });
     } else {
       // Create a new record in the registeredTournament table
       const registeredTournament = new RegisteredTournament({
@@ -848,7 +856,7 @@ exports.registerTournament = async function (req, res) {
         play_amount,
         bonus_amount,
         players_count,
-        is_registered: 1
+        valid_upto: valid_upto
       });
 
       // Save the record
@@ -904,22 +912,37 @@ exports.unregisterPlayerForTournament = async function (req, res) {
     // Check if the tournament exists
     const tournament = await Tournament.findById(tournament_id);
     if (!tournament) {
-      return res.status(400).json({ success: false, message: 'Tournament not found.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Tournament not found.'
+      });
     }
 
     // Check if the player exists
     const player = await Players.findById(player_id);
     if (!player) {
-      return res.status(400).json({ success: false, message: 'Player not found.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Player not found.'
+      });
     }
 
     // Update is_registered field in the RegisteredTournament table
-    await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered });
+    await RegisteredTournament.findOneAndUpdate({
+      tournament_id,
+      player_id
+    }, {
+      is_registered
+    });
 
     // If refund is provided, add the refund amount to the player's wallet_amount
     if (refund && refund > 0) {
       // Update wallet_amount in the Players table
-      await Players.findByIdAndUpdate(player_id, { $inc: { wallet_amount: refund } });
+      await Players.findByIdAndUpdate(player_id, {
+        $inc: {
+          wallet_amount: refund
+        }
+      });
     }
 
     // Respond with success message
@@ -997,14 +1020,15 @@ exports.deleteNotification = async function (req, res) {
 };
 
 
-const uploadAdharImage = configMulter('playerAdahrImage/', [ {
-  name: 'aadhar_front_image',
-  maxCount: 1
-},
-{
-  name: 'aadhar_back_image',
-  maxCount: 1
-}]);
+const uploadAdharImage = configMulter('playerAdahrImage/', [{
+    name: 'aadhar_front_image',
+    maxCount: 1
+  },
+  {
+    name: 'aadhar_back_image',
+    maxCount: 1
+  }
+]);
 
 exports.playerAdharImage = async function (req, res) {
   uploadAdharImage(req, res, async function (err) {
@@ -1427,6 +1451,8 @@ exports.getTournamentDetails = async function (req, res) {
     let responseData;
 
     if (tournamentData) {
+      // Calculate remaining time for the tournament based on repeating intervals
+      const currentTime = new Date().getTime();
       // If tournament_id is present, update the response with tournament details
       const playerData = await RegisteredTournament.findOne({
         $and: [{
@@ -1434,15 +1460,21 @@ exports.getTournamentDetails = async function (req, res) {
         }, {
           tournament_id: tournament_id
         }]
+      }).sort({
+        createdAt: -1
       });
       const playerCount = await RegisteredTournament.countDocuments({
         tournament_id
       });
 
+      let registered = 0;
+
+      registered = (playerData && playerData.valid_upto < currentTime) ? 1 : 0;
+
       responseData = {
         success: true,
         count: playerCount.toString(),
-        registered: playerData ? 1 : 0,
+        registered: registered,
         operator: "creator",
         tournament_id,
         player_id,
@@ -1462,8 +1494,6 @@ exports.getTournamentDetails = async function (req, res) {
       // Convert createdAt to a formatted time string
       const tournamentStartTime = new Date(tournamentData.createdAt);
 
-      // Calculate remaining time for the tournament based on repeating intervals
-      const currentTime = new Date().getTime();
       const timeDifference = currentTime - tournamentStartTime.getTime();
       const elapsedSeconds = timeDifference / 1000;
 
@@ -1477,6 +1507,7 @@ exports.getTournamentDetails = async function (req, res) {
 
       responseData.remainingtime = remainingSeconds;
 
+      responseData.remainingtime
     } else {
       // If tournament_id does not exist, set default values
       responseData = {
@@ -1650,7 +1681,9 @@ exports.storeGameHistory = async function (req, res) {
 // Game History List
 exports.getGameHistoryList = async function (req, res) {
   try {
-    const { player_id } = req.body;
+    const {
+      player_id
+    } = req.body;
 
     // Check if player_id is provided
     if (!player_id) {
@@ -1660,7 +1693,9 @@ exports.getGameHistoryList = async function (req, res) {
       });
     }
 
-    const gameHistoryList = await GameHistory.find({ player_id });
+    const gameHistoryList = await GameHistory.find({
+      player_id
+    });
 
     res.status(200).json({
       success: true,
