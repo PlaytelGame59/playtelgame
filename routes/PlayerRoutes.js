@@ -25,7 +25,8 @@ router.post('/tournament/details', playerController.getTournamentDetails);
 router.get('/tournament/list', playerController.getTournamentList);
 router.post('/refund-tournament-amount', playerController.refundTournamentAmount);
 router.post('/store/game/history', playerController.storeGameHistory);
-router.get('/game/history/list', playerController.getGameHistoryList);
+router.post('/game/history/list', playerController.getGameHistoryList);
 router.post('/pan-upload', playerController.playerPanImage);
+router.get('/get-leaderboard', playerController.getleaderboard);
 
 module.exports = router;
