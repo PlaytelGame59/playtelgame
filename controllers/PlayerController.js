@@ -658,32 +658,38 @@ exports.changeFriendStatus = async function (req, res) {
 
 exports.getleaderboard = async function (req, res) {
   try {
-    // Use MongoDB Aggregation to group by player_id and calculate the sum of amount
-    const result = await WalletHistory.aggregate([
+    const filter = {
+      type: 'credit',
+      wallet_type: 'winning_amount'
+    };
+
+    const aggregatedResults = await WalletHistory.aggregate([
+      { $match: filter },
       {
         $group: {
           _id: '$player_id',
-          totalAmount: { $sum: '$amount' },
-        },
+          totalAmount: { $sum: { $toDouble: '$amount' } } // Convert amount to number
+        }
       },
+      {
+        $project: {
+          _id: 0,
+          player_id: '$_id',
+          totalAmount: 1
+        }
+      }
     ]);
-
-    // Prepare the response data
-    const sumOfAmounts = result.map(item => ({
-      player_id: item._id,
-      totalAmount: item.totalAmount,
-    }));
 
     return res.status(200).json({
       success: true,
-      sumOfAmounts,
+      playerHistory: aggregatedResults
     });
   } catch (error) {
-    console.error('Error fetching sum of amount:', error);
+    console.error('Error fetching player history:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to fetch sum of amount.',
-      error: error.message,
+      message: 'Failed to fetch player history',
+      error: error.message
     });
   }
 };
