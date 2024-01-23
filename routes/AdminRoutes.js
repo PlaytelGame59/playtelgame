@@ -14,14 +14,17 @@ router.get('/tournaments-list', adminController.getTorunment);
 router.post('/update-tournament', adminController.updateTournament)
 router.post('/delete-tournaments-data', adminController.deleteTorunment);
 
-
 router.post('/add-disclamer', adminController.addDisclamer);
-
 router.post('/add-notification', adminController.addNotification)
-
 router.get('/get-notification', adminController.getNotification)
 
 
+router.post('/add-notice', adminController.addNotice);
+router.post('/update-notice', adminController.updateNotice);
+router.post('/delete-notice', adminController.deleteNotice);
+router.get('/get-all-notice', adminController.getAllNotices);
+
+router.post('/update-withdraw-status', adminController.updateWithdrawStatus);
 
 
 module.exports = router;

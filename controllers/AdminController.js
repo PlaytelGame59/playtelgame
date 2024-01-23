@@ -6,10 +6,11 @@ const Disclamer = require('../models/Disclaimer');
 const Notification = require('../models/Notification');
 const configMulter = require('../configMulter')
 const multer = require('multer');
-const Player = require('../models/Players');
-const Withdraw = require('../models/WithdrawDetails');
+const Players = require('../models/Players');
+const WithdrawDetails = require('../models/WithdrawDetails');
 const Transaction = require('../models/TransactionModel')
 const Wallet = require('../models/WalletHistory');
+const Notice = require('../models/Notice')
 
 // Admin module <----------------------->
 exports.signUp = async function (req, res) {
@@ -841,57 +842,252 @@ exports.getRejectedWithdraw = async function (req, res) {
 };
 
 // Add a new endpoint to handle approve, withdraw, and reject actions
-exports.updateWithdrawStatus = async function (req, res) {
+// exports.updateWithdrawStatus = async function (req, res) {
+//   try {
+//     const {
+//       playerId,
+//       action
+//     } = req.body;
+
+//     let updateFields;
+
+//     switch (action) {
+//       case 'approve':
+//         updateFields = {
+//           isApprove: true,
+//           approveAt: new Date()
+//         };
+//         break;
+//       case 'withdraw':
+//         updateFields = {
+//           isWithdrawn: true,
+//           withdrawAt: new Date()
+//         };
+//         break;
+//       case 'reject':
+//         updateFields = {
+//           isApprove: false,
+//           isWithdrawn: false,
+//           rejectAt: new Date()
+//         };
+//         break;
+//       default:
+//         return res.status(400).json({
+//           success: false,
+//           message: 'Invalid action specified.',
+//         });
+//     }
+
+//     // Update the player's status based on the action
+//     const updatedPlayer = await Player.findByIdAndUpdate(playerId, updateFields, {
+//       new: true
+//     });
+
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Player status updated successfully.',
+//       updatedPlayer,
+//     });
+//   } catch (error) {
+//     console.error('Error updating player status:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to update player status.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+// new api's for admin
+exports.addNotice = async function (req, res) {
+try {
+  const { message } = req.body;
+
+  if (!message) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide a message.',
+    });
+  }
+
+  const newNotice = new Notice({
+    message,
+  });
+
+  await newNotice.save();
+
+  return res.status(201).json({
+    success: true,
+    message: 'Notice added successfully.',
+  });
+} catch (error) {
+  console.error('Error adding notice:', error);
+  return res.status(500).json({
+    success: false,
+    message: 'Failed to add notice.',
+    error: error.message,
+  });
+}
+};
+
+exports.updateNotice = async function (req, res) {
   try {
-    const {
-      playerId,
-      action
-    } = req.body;
+    const { noticeId, updatedMessage } = req.body;
 
-    let updateFields;
-
-    switch (action) {
-      case 'approve':
-        updateFields = {
-          isApprove: true,
-          approveAt: new Date()
-        };
-        break;
-      case 'withdraw':
-        updateFields = {
-          isWithdrawn: true,
-          withdrawAt: new Date()
-        };
-        break;
-      case 'reject':
-        updateFields = {
-          isApprove: false,
-          isWithdrawn: false,
-          rejectAt: new Date()
-        };
-        break;
-      default:
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid action specified.',
-        });
+    if (!noticeId || !updatedMessage) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide noticeId and updatedMessage.',
+      });
     }
 
-    // Update the player's status based on the action
-    const updatedPlayer = await Player.findByIdAndUpdate(playerId, updateFields, {
-      new: true
-    });
+    // Find the notice by ID
+    const notice = await Notice.findById(noticeId);
+
+    if (!notice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notice not found.',
+      });
+    }
+
+    // Update the notice message
+    notice.message = updatedMessage;
+
+    // Save the updated notice
+    await notice.save();
 
     return res.status(200).json({
       success: true,
-      message: 'Player status updated successfully.',
-      updatedPlayer,
+      message: 'Notice updated successfully.',
     });
   } catch (error) {
-    console.error('Error updating player status:', error);
+    console.error('Error updating notice:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to update player status.',
+      message: 'Failed to update notice.',
+      error: error.message,
+    });
+  }
+};
+
+// Delete a notice by ID
+exports.deleteNotice = async function (req, res) {
+  try {
+    const { noticeId } = req.body;
+
+    if (!noticeId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide noticeId.',
+      });
+    }
+
+    // Find the notice by ID and remove it
+    const deletedNotice = await Notice.findByIdAndDelete(noticeId);
+
+    if (!deletedNotice) {
+      return res.status(404).json({
+        success: false,
+        message: 'Notice not found.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notice deleted successfully.',
+    });
+  } catch (error) {
+    console.error('Error deleting notice:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete notice.',
+      error: error.message,
+    });
+  }
+};
+
+// Get all notices
+exports.getAllNotices = async function (req, res) {
+  try {
+    const notices = await Notice.find();
+
+    return res.status(200).json({
+      success: true,
+      notices,
+    });
+  } catch (error) {
+    console.error('Error fetching notices:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch notices.',
+      error: error.message,
+    });
+  }
+};
+
+// update player's withdraw data
+exports.updateWithdrawStatus = async function (req, res) {
+  try {
+    const { player_id } = req.body;
+
+    if (!player_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide player_id.',
+      });
+    }
+
+    // Find the WithdrawDetails by player_id
+    const withdrawDetails = await WithdrawDetails.findOne({ player_id });
+
+    if (!withdrawDetails) {
+      return res.status(404).json({
+        success: false,
+        message: 'Withdraw details not found for the provided player_id.',
+      });
+    }
+
+    // Check if the status is already true
+    if (withdrawDetails.status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Withdraw status is already true for the provided player_id.',
+      });
+    }
+
+    // Update the WithdrawDetails status to true
+    withdrawDetails.status = true;
+
+    // Save the changes
+    await withdrawDetails.save();
+
+    // Deduct amt_withdraw from wallet_amount in Players table
+    const player = await Players.findById(player_id);
+
+    if (!player) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found with the provided player_id.',
+      });
+    }
+
+    // Deduct amt_withdraw from wallet_amount
+    player.wallet_amount -= withdrawDetails.amt_withdraw;
+
+    // Save the changes to the player's wallet_amount
+    await player.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Withdraw status updated successfully, and wallet_amount deducted.',
+    });
+  } catch (error) {
+    console.error('Error updating withdraw status:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to update withdraw status.',
       error: error.message,
     });
   }

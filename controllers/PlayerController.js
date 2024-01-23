@@ -14,6 +14,7 @@ const AdharKYC = require('../models/AdharKYC');
 const PanKYC = require('../models/PanKYC')
 const WalletHistory = require('../models/WalletHistory');
 const GameHistory = require('../models/GameHistory');
+const SaveBankDetails = require('../models/SaveBankDetails');
 const ObjectId = require('mongodb').ObjectId;
 
 
@@ -657,52 +658,35 @@ exports.changeFriendStatus = async function (req, res) {
 
 exports.getleaderboard = async function (req, res) {
   try {
-    const filter = {
-      type: 'credit',
-      wallet_type: 'winning_amount'
-    };
-
-    const playerIdList = await WalletHistory.distinct('player_id', filter);
-
-    const leaderboardData = [];
-
-    for (const playerId of playerIdList) {
-      const totalWinningAmount = await WalletHistory.aggregate([{
-          $match: {
-            player_id: playerId,
-            ...filter
-          }
+    // Use MongoDB Aggregation to group by player_id and calculate the sum of amount
+    const result = await WalletHistory.aggregate([
+      {
+        $group: {
+          _id: '$player_id',
+          totalAmount: { $sum: '$amount' },
         },
-        {
-          $group: {
-            _id: null,
-            totalWinningAmount: {
-              $sum: '$amount'
-            }
-          }
-        }
-      ]);
+      },
+    ]);
 
-      leaderboardData.push({
-        player_id: playerId,
-        total_winning_amount: totalWinningAmount.length > 0 ? totalWinningAmount[0].totalWinningAmount : 0
-      });
-    }
+    // Prepare the response data
+    const sumOfAmounts = result.map(item => ({
+      player_id: item._id,
+      totalAmount: item.totalAmount,
+    }));
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      leaderboardData
+      sumOfAmounts,
     });
   } catch (error) {
-    console.error('Error fetching leaderboard data:', error);
-    res.status(500).json({
+    console.error('Error fetching sum of amount:', error);
+    return res.status(500).json({
       success: false,
-      message: 'Failed to fetch leaderboard data',
-      error: error.message
+      message: 'Failed to fetch sum of amount.',
+      error: error.message,
     });
   }
 };
-
 
 //  // Function to calculate prizes based on your logic
 // function calculatePrizes(topUsers) {
@@ -753,7 +737,7 @@ exports.saveBankDetails = async function (req, res) {
       bank_ifsc
     } = req.body;
 
-    const newBankDetails = new WithdrawDetails({
+    const newBankDetails = new SaveBankDetails({
       player_id,
       upi_id,
       bank_name,
@@ -1864,7 +1848,7 @@ exports.playerPanImage = async function (req, res) {
       } = req.body;
 
       // Check if player_id is provided
-      if (!player_id || !type) {
+      if (!player_id) {
         return res.status(400).json({
           success: false,
           message: 'Player ID and type are required.'
