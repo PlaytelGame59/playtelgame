@@ -633,27 +633,75 @@ exports.changeFriendStatus = async function (req, res) {
 // };
 
 
+// exports.getleaderboard = async function (req, res) {
+//   try {
+//     // Fetch users from the database, sorted by a relevant metric (e.g., amount)
+//     const leaderboard = await PlayerModel.find().sort({
+//       wallet_amount: -1
+//     }).limit(10);
+
+//     // You can customize the sorting and limit based on your application's requirements
+
+//     return res.status(200).json({
+//       success: true,
+//       leaderboard
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error"
+//     });
+//   }
+// };
+
 exports.getleaderboard = async function (req, res) {
   try {
-    // Fetch users from the database, sorted by a relevant metric (e.g., amount)
-    const leaderboard = await PlayerModel.find().sort({
-      wallet_amount: -1
-    }).limit(10);
+    const filter = {
+      type: 'credit',
+      wallet_type: 'winning_amount'
+    };
 
-    // You can customize the sorting and limit based on your application's requirements
+    const playerIdList = await WalletHistory.distinct('player_id', filter);
 
-    return res.status(200).json({
+    const leaderboardData = [];
+
+    for (const playerId of playerIdList) {
+      const totalWinningAmount = await WalletHistory.aggregate([
+        {
+          $match: {
+            player_id: playerId,
+            ...filter
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            totalWinningAmount: { $sum: '$amount' }
+          }
+        }
+      ]);
+
+      leaderboardData.push({
+        player_id: playerId,
+        total_winning_amount: totalWinningAmount.length > 0 ? totalWinningAmount[0].totalWinningAmount : 0
+      });
+    }
+
+    res.status(200).json({
       success: true,
-      leaderboard
+      leaderboardData
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching leaderboard data:', error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error"
+      message: 'Failed to fetch leaderboard data',
+      error: error.message
     });
   }
 };
+
 
 //  // Function to calculate prizes based on your logic
 // function calculatePrizes(topUsers) {
@@ -1748,4 +1796,38 @@ exports.playerPanImage = async function (req, res) {
       });
     }
   });
+};
+
+// send notification
+exports.sendNotificationToCustomer = async (req, res) => {
+  try {
+    const { player_id } = req.body;
+    const player = await Players.findById(player_id);
+    const playerFCMToken = player?.fcmToken;
+    // const astrologer = await Astrologer.findById(astrologerId);
+
+    const astrologerData = {
+      notificationBody: 'Astrologer is responding for your chat request.',
+      type: 'Chat Request',
+      priority: 'High'
+    };
+
+    const deviceToken = customerFCMToken;
+
+    const title = `Response of Chat request from ${astrologerData.astrologerName || 'an Astrologer.'}`;
+    const notification = {
+      title,
+      body: astrologerData,
+    }
+
+    // astrologer.chat_status = 'busy';
+    // await astrologer.save();
+
+    await notificationService.sendNotification(deviceToken, notification);
+
+    res.status(200).json({ success: true, message: 'Notification sent successfully to the customer. Astrologer status updated to busy.' });
+  } catch (error) {
+    console.error('Failed to send notification to the customer:', error);
+    res.status(500).json({ success: false, message: 'Failed to send notification to the customer.', error: error.message });
+  }
 };
