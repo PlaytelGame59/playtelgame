@@ -228,7 +228,9 @@ exports.getPlayerDetails = async function (req, res) {
         join_code: player.join_code,
         no_of_loose: player.no_of_loose,
         no_of_total_win: player.no_of_total_win,
-        banned: player.banned,
+        is_banned: player.is_banned,
+        is_adhar_kyc: player.is_adhar_kyc,
+        is_pan_kyc: player.is_adhar_kyc
       },
       wallet: {
         current_amount: player.wallet_amount || 0,
@@ -456,6 +458,41 @@ exports.getFriendList = async function (req, res) {
   }
 };
 
+// exports.sendWithdrawalRequest = async function (req, res) {
+//   try {
+//     const {
+//       player_id,
+//       amt_withdraw,
+//       bank_account,
+//       bank_ifsc
+//     } = req.body;
+
+//     // Create a new withdrawal request entry
+//     const newWithdrawalRequest = new WithdrawDetails({
+//       player_id,
+//       amt_withdraw,
+//       bank_account,
+//       bank_ifsc
+//     });
+
+//     await newWithdrawalRequest.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Withdrawal request sent to admin.',
+//       data: newWithdrawalRequest
+//     });
+//   } catch (error) {
+//     console.error('Error sending withdrawal request:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to send withdrawal request.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
 exports.sendWithdrawalRequest = async function (req, res) {
   try {
     const {
@@ -464,6 +501,20 @@ exports.sendWithdrawalRequest = async function (req, res) {
       bank_account,
       bank_ifsc
     } = req.body;
+
+    // Check if there is a pending withdrawal request for the player
+    const existingWithdrawalRequest = await WithdrawDetails.findOne({
+      player_id,
+      status: 0 // 0 means pending
+    });
+
+    if (existingWithdrawalRequest) {
+      // Player has a pending withdrawal request, cannot send another one
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot send another withdrawal request as a previous request is pending.',
+      });
+    }
 
     // Create a new withdrawal request entry
     const newWithdrawalRequest = new WithdrawDetails({
@@ -489,6 +540,7 @@ exports.sendWithdrawalRequest = async function (req, res) {
     });
   }
 };
+
 
 exports.getWithdrawHistory = async function (req, res) {
 //   try {

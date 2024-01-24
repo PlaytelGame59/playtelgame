@@ -24,7 +24,7 @@ router.post('/update-notice', adminController.updateNotice);
 router.post('/delete-notice', adminController.deleteNotice);
 router.get('/get-all-notice', adminController.getAllNotices);
 
-router.post('/update-withdraw-status', adminController.updateWithdrawStatus);
+// router.post('/update-withdraw-status', adminController.updateWithdrawStatus);
 router.get('/get-adhar-list', adminController.getPlayerAadharList);
 router.get('/get-pan-list', adminController.getPlayerPanList);
 router.get('/get-player-list', adminController.getPlayerList);

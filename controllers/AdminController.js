@@ -1009,72 +1009,232 @@ exports.getAllNotices = async function (req, res) {
 };
 
 // update player's withdraw data
-exports.updateWithdrawStatus = async function (req, res) {
-  try {
-    const { player_id, status } = req.body;
+// exports.updateWithdrawStatus = async function (req, res) {
+//   try {
+//     const { player_id, status } = req.body;
 
-    if (!player_id || status === undefined) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide player_id and status.',
-      });
-    }
+//     if (!player_id || status === undefined) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Please provide player_id and status.',
+//       });
+//     }
 
-    // Find the WithdrawDetails by player_id
-    const withdrawDetails = await WithdrawDetails.findOne({ player_id });
+//     // Find the WithdrawDetails by player_id
+//     const withdrawDetails = await WithdrawDetails.findOne({ player_id });
 
-    if (!withdrawDetails) {
-      return res.status(404).json({
-        success: false,
-        message: 'Withdraw details not found for the provided player_id.',
-      });
-    }
+//     if (!withdrawDetails) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Withdraw details not found for the provided player_id.',
+//       });
+//     }
 
-    // Check if the status is already set
-    if (withdrawDetails.status !== 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Withdraw status is already set for the provided player_id.',
-      });
-    }
+//     // Check if the status is already set
+//     if (withdrawDetails.status !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Withdraw status is already set for the provided player_id.',
+//       });
+//     }
 
-    // Update the WithdrawDetails status
-    withdrawDetails.status = status;
+//     // Update the WithdrawDetails status
+//     withdrawDetails.status = status;
 
-    // Save the changes
-    await withdrawDetails.save();
+//     // Save the changes
+//     await withdrawDetails.save();
 
-    if (status === 1) {
-      // Deduct amt_withdraw from wallet_amount in Players table
-      const player = await Players.findById(player_id);
+//     if (status === 1) {
+//       // Deduct amt_withdraw from wallet_amount in Players table
+//       const player = await Players.findById(player_id);
 
-      if (!player) {
-        return res.status(404).json({
-          success: false,
-          message: 'Player not found with the provided player_id.',
-        });
-      }
+//       if (!player) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Player not found with the provided player_id.',
+//         });
+//       }
 
-      // Deduct amt_withdraw from wallet_amount
-      player.wallet_amount -= withdrawDetails.amt_withdraw;
+//       // Deduct amt_withdraw from wallet_amount
+//       player.wallet_amount -= withdrawDetails.amt_withdraw;
 
-      // Save the changes to the player's wallet_amount
-      await player.save();
-    }
+//       // Save the changes to the player's wallet_amount
+//       await player.save();
+//     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Withdraw status updated successfully.',
-    });
-  } catch (error) {
-    console.error('Error updating withdraw status:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to update withdraw status.',
-      error: error.message,
-    });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Withdraw status updated successfully.',
+//     });
+//   } catch (error) {
+//     console.error('Error updating withdraw status:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to update withdraw status.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+// exports.updateWithdrawStatus = async function (req, res) {
+//   try {
+//     const { player_id, status } = req.body;
+
+//     if (!player_id || status === undefined) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Please provide player_id and status.',
+//       });
+//     }
+
+//     // Find the WithdrawDetails by player_id
+//     const withdrawDetails = await WithdrawDetails.findOne({ player_id });
+
+//     if (!withdrawDetails) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Withdraw details not found for the provided player_id.',
+//       });
+//     }
+
+//     // Check if the status is already set
+//     if (withdrawDetails.status !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Withdraw status is already set for the provided player_id.',
+//       });
+//     }
+
+//     // Update the WithdrawDetails status
+//     withdrawDetails.status = status;
+
+//     // Save the changes
+//     await withdrawDetails.save();
+
+//     if (status === 1) {
+//       // Deduct amt_withdraw from wallet_amount in Players table
+//       const player = await Players.findById(player_id);
+
+//       if (!player) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Player not found with the provided player_id.',
+//         });
+//       }
+
+//       // Check if the player has sufficient balance
+//       if (player.wallet_amount < withdrawDetails.amt_withdraw) {
+//         // If not enough balance, reject the withdrawal
+//         withdrawDetails.status = 2; // Set status to 2 (rejected)
+//         await withdrawDetails.save();
+
+//         return res.status(400).json({
+//           success: false,
+//           message: 'Insufficient balance in the player\'s wallet.',
+//         });
+//       }
+
+//       // Deduct amt_withdraw from wallet_amount
+//       player.wallet_amount -= withdrawDetails.amt_withdraw;
+
+//       // Save the changes to the player's wallet_amount
+//       await player.save();
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Withdraw status updated successfully.',
+//     });
+//   } catch (error) {
+//     console.error('Error updating withdraw status:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to update withdraw status.',
+//       error: error.message,
+//     });
+//   }
+// };
+
+// exports.updateWithdrawStatus = async function (req, res) {
+//   try {
+//     const { player_id, status } = req.body;
+
+//     if (!player_id || status === undefined) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Please provide player_id and status.',
+//       });
+//     }
+
+//     // Find the WithdrawDetails by player_id
+//     const withdrawDetails = await WithdrawDetails.findOne({ player_id });
+
+//     if (!withdrawDetails) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Withdraw details not found for the provided player_id.',
+//       });
+//     }
+
+//     // Check if the status is not 0
+//     if (withdrawDetails.status !== 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Withdraw status is already set for the provided player_id.',
+//       });
+//     }
+
+//     // Update the WithdrawDetails status
+//     withdrawDetails.status = status;
+
+//     // Save the changes
+//     await withdrawDetails.save();
+
+//     if (status === 1) {
+//       // Deduct amt_withdraw from wallet_amount in Players table
+//       const player = await Players.findById(player_id);
+
+//       if (!player) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Player not found with the provided player_id.',
+//         });
+//       }
+
+//       // Check if the player has sufficient balance
+//       if (player.wallet_amount < withdrawDetails.amt_withdraw) {
+//         // If not enough balance, reject the withdrawal
+//         withdrawDetails.status = 2; // Set status to 2 (rejected)
+//         await withdrawDetails.save();
+
+//         return res.status(400).json({
+//           success: false,
+//           message: 'Insufficient balance in the player\'s wallet.',
+//         });
+//       }
+
+//       // Deduct amt_withdraw from wallet_amount
+//       player.wallet_amount -= withdrawDetails.amt_withdraw;
+
+//       // Save the changes to the player's wallet_amount
+//       await player.save();
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Withdraw status updated successfully.',
+//     });
+//   } catch (error) {
+//     console.error('Error updating withdraw status:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to update withdraw status.',
+//       error: error.message,
+//     });
+//   }
+// };
+
 
 // Adhar list 
 exports.getPlayerAadharList = async function (req, res) {
