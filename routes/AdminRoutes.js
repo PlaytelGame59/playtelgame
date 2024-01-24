@@ -32,6 +32,7 @@ router.get('/get-active-players', adminController.getActivePlayers);
 
 router.post('/approve-player-adhar', adminController.approveAadharKyc);
 router.post('/approve-player-pan', adminController.approvePanKyc);
+router.post('/send-notification-to-players', adminController.sendNotificationToPlayers);
 
 router
 

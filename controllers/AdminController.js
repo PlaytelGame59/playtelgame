@@ -11,8 +11,10 @@ const WithdrawDetails = require('../models/WithdrawDetails');
 const Transaction = require('../models/TransactionModel')
 const Wallet = require('../models/WalletHistory');
 const Notice = require('../models/Notice');
-const AdharKYC = require('../models/AdharKYC')
-const PanKYC = require('../models/PanKYC')
+const AdharKYC = require('../models/AdharKYC');
+const PanKYC = require('../models/PanKYC');
+const notificationService = require('../notificationService');
+
 
 // Admin module <----------------------->
 exports.signUp = async function (req, res) {
@@ -588,6 +590,7 @@ exports.getNotification = async function (req, res) {
     });
   }
 }
+
 // Use Multer middleware for file uploads
 const uploadImage = configMulter('notificationImage/', [{
   name: 'notificationImg',
@@ -1366,5 +1369,108 @@ exports.approvePanKyc = async function (req, res) {
       message: 'Failed to approve Pan KYC.',
       error: error.message,
     });
+  }
+};
+
+// send notification to players 
+
+// exports.sendNotificationToPlayers = async (req, res) => {
+//   try {
+//     const { player_Ids, notificationTitle, notificationMessage, notificationImg } = req.body;
+
+//     if (!player_Ids || !Array.isArray(player_Ids) || player_Ids.length === 0) {
+//       return res.status(400).json({ success: false, message: 'Invalid player IDs provided.' });
+//     }
+
+//     // Fetch players with the provided IDs
+//     const players = await Players.find({ _id: { $in: player_Ids } });
+    
+//     // Extract FCM tokens from players
+//     const playerFCMTokens = players.map(player => player?.device_token).filter(Boolean);
+
+//     if (playerFCMTokens.length === 0) {
+//       return res.status(400).json({ success: false, message: 'No valid FCM tokens found for the provided players.' });
+//     }
+
+//     const notificationPayload = {
+//       notificationTitle, 
+//       notificationMessage, 
+//       notificationImg
+//     };
+
+//     // Send notifications to each player and store in the Notification table
+//     const notificationPromises = playerFCMTokens.map(async (device_token) => {
+//       await notificationService.sendNotification(device_token, notificationPayload);
+
+//       // Save the notification in the Notification table
+//       const notification = new Notification({
+//         player_id: players.find(player => player.device_token === device_token)?._id,
+//         notificationTitle, 
+//         notificationMessage, 
+//         notificationImg
+//       });
+
+//       return notification.save();
+//     });
+
+//     // Wait for all notifications to be sent and stored
+//     await Promise.all(notificationPromises);
+
+//     res.status(200).json({ success: true, message: 'Notifications sent and stored successfully.' });
+//   } catch (error) {
+//     console.error('Failed to send and store notifications:', error);
+//     res.status(500).json({ success: false, message: 'Failed to send and store notifications.', error: error.message });
+//   }
+// };
+exports.sendNotificationToPlayers = async (req, res) => {
+  try {
+    const { player_Ids, notificationTitle, notificationMessage, notificationImg } = req.body;
+
+    if (!player_Ids || !Array.isArray(player_Ids) || player_Ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'Invalid player IDs provided.' });
+    }
+
+    // Fetch players with the provided IDs
+    const players = await Players.find({ _id: { $in: player_Ids } });
+    
+    // Extract FCM tokens from players
+    const playerFCMTokens = players.map(player => player?.device_token).filter(Boolean);
+
+    if (playerFCMTokens.length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid FCM tokens found for the provided players.' });
+    }
+
+    const notificationPayload = {
+      notificationTitle, 
+      notificationMessage, 
+      notificationImg
+    };
+
+    // Send notifications to each player and store in the Notification table
+    const notificationPromises = playerFCMTokens.map(async (device_token) => {
+      await notificationService.sendNotification(device_token, notificationPayload);
+
+      // Find the player ID based on the device token
+      const player = players.find(p => p.device_token === device_token);
+      const player_id = player?._id;
+
+      // Save the notification in the Notification table
+      const notification = new Notification({
+        player_id,
+        notificationTitle, 
+        notificationMessage, 
+        notificationImg
+      });
+
+      return notification.save();
+    });
+
+    // Wait for all notifications to be sent and stored
+    await Promise.all(notificationPromises);
+
+    res.status(200).json({ success: true, message: 'Notifications sent and stored successfully.' });
+  } catch (error) {
+    console.error('Failed to send and store notifications:', error);
+    res.status(500).json({ success: false, message: 'Failed to send and store notifications.', error: error.message });
   }
 };

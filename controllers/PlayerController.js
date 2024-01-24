@@ -493,6 +493,55 @@ exports.getFriendList = async function (req, res) {
 // };
 
 
+// exports.sendWithdrawalRequest = async function (req, res) {
+//   try {
+//     const {
+//       player_id,
+//       amt_withdraw,
+//       bank_account,
+//       bank_ifsc
+//     } = req.body;
+
+//     // Check if there is a pending withdrawal request for the player
+//     const existingWithdrawalRequest = await WithdrawDetails.findOne({
+//       player_id,
+//       status: 0 // 0 means pending
+//     });
+
+//     if (existingWithdrawalRequest) {
+//       // Player has a pending withdrawal request, cannot send another one
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Cannot send another withdrawal request as a previous request is pending.',
+//       });
+//     }
+
+//     // Create a new withdrawal request entry
+//     const newWithdrawalRequest = new WithdrawDetails({
+//       player_id,
+//       amt_withdraw,
+//       bank_account,
+//       bank_ifsc
+//     });
+
+//     await newWithdrawalRequest.save();
+
+//     res.status(200).json({
+//       success: true,
+//       message: 'Withdrawal request sent to admin.',
+//       data: newWithdrawalRequest
+//     });
+//   } catch (error) {
+//     console.error('Error sending withdrawal request:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to send withdrawal request.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
 exports.sendWithdrawalRequest = async function (req, res) {
   try {
     const {
@@ -503,18 +552,42 @@ exports.sendWithdrawalRequest = async function (req, res) {
     } = req.body;
 
     // Check if there is a pending withdrawal request for the player
-    const existingWithdrawalRequest = await WithdrawDetails.findOne({
-      player_id,
-      status: 0 // 0 means pending
-    });
+    // const existingWithdrawalRequest = await WithdrawDetails.findOne({
+    //   player_id,
+    //   status: 0 // 0 means pending
+    // });
 
-    if (existingWithdrawalRequest) {
-      // Player has a pending withdrawal request, cannot send another one
-      return res.status(400).json({
+    // if (existingWithdrawalRequest) {
+    //   // Player has a pending withdrawal request, cannot send another one
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Cannot send another withdrawal request as a previous request is pending.',
+    //   });
+    // }
+
+    // Get the player's data
+    const player = await Players.findById(player_id);
+
+    if (!player) {
+      return res.status(404).json({
         success: false,
-        message: 'Cannot send another withdrawal request as a previous request is pending.',
+        message: 'Player not found with the provided player_id.',
       });
     }
+
+    // Check if the requested amount is greater than winning_amount
+    if (amt_withdraw > player.winning_amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Requested amount is greater than the available winning amount. Cannot process the withdrawal.',
+      });
+    }
+
+    // Deduct the requested amount from winning_amount
+    player.winning_amount -= amt_withdraw;
+
+    // Save the changes to the player's winning_amount
+    await player.save();
 
     // Create a new withdrawal request entry
     const newWithdrawalRequest = new WithdrawDetails({
@@ -528,8 +601,8 @@ exports.sendWithdrawalRequest = async function (req, res) {
 
     res.status(200).json({
       success: true,
-      message: 'Withdrawal request sent to admin.',
-      data: newWithdrawalRequest
+      message: 'requested Amount withdrawlled successfully.',
+      // data: newWithdrawalRequest
     });
   } catch (error) {
     console.error('Error sending withdrawal request:', error);
@@ -543,71 +616,39 @@ exports.sendWithdrawalRequest = async function (req, res) {
 
 
 exports.getWithdrawHistory = async function (req, res) {
-//   try {
-//     const {
-//       player_id
-//     } = req.body;
+  try {
+    const { player_id } = req.body;
 
-//     // Find player by player_id
-//     if (!ObjectId.isValid(player_id)) return res.status(400).json({
-//       success: false,
-//       message: 'player_id is not valid'
-//     });
-//     const withdrawHistory = await WithdrawDetails.findById(player_id);
+    // Validate if player_id is a valid ObjectId
+    if (!ObjectId.isValid(player_id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'player_id is not valid',
+      });
+    }
 
-//     if (!withdrawHistory) {
-//       return res.status(200).json({
-//         success: false,
-//         message: 'Withdrawl History not found.'
-//       });
-//     }
+    // Find all withdrawal records for the given player_id
+    const withdrawHistory = await WithdrawDetails.find({ player_id });
 
-//     res.status(200).json({
-//       success: true,
-//       withdrawHistory
-//     });
-//   } catch (error) {
-//     console.error('Error fetching withdrawl history:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Failed to fetch withdrawl history.',
-//       error: error.message
-//     });
-//   }
-// };
-try {
-  const { player_id } = req.body;
+    if (!withdrawHistory || withdrawHistory.length === 0) {
+      return res.status(200).json({
+        success: false,
+        message: 'Withdrawal History not found.',
+      });
+    }
 
-  // Validate if player_id is a valid ObjectId
-  if (!ObjectId.isValid(player_id)) {
-    return res.status(400).json({
+    res.status(200).json({
+      success: true,
+      withdrawHistory,
+    });
+  } catch (error) {
+    console.error('Error fetching withdrawal history:', error);
+    res.status(500).json({
       success: false,
-      message: 'player_id is not valid',
+      message: 'Failed to fetch withdrawal history.',
+      error: error.message,
     });
   }
-
-  // Find all withdrawal records for the given player_id
-  const withdrawHistory = await WithdrawDetails.find({ player_id });
-
-  if (!withdrawHistory || withdrawHistory.length === 0) {
-    return res.status(200).json({
-      success: false,
-      message: 'Withdrawal History not found.',
-    });
-  }
-
-  res.status(200).json({
-    success: true,
-    withdrawHistory,
-  });
-} catch (error) {
-  console.error('Error fetching withdrawal history:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Failed to fetch withdrawal history.',
-    error: error.message,
-  });
-}
 };
 
 // get player'swallet history
