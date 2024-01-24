@@ -977,6 +977,92 @@ exports.getNotificationList = async function (req, res) {
 //   }
 // };
 
+// exports.registerTournament = async function (req, res) {
+//   try {
+//     // Extract data from the request body
+//     const {
+//       tournament_id,
+//       player_id,
+//       play_amount,
+//       bonus_amount,
+//       players_count
+//     } = req.body;
+
+//     // Check if the tournament exists
+//     const tournament = await Tournament.findById(tournament_id);
+//     if (!tournament) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Tournament not found.'
+//       });
+//     }
+
+//     const tournamentIntervalInSeconds = parseInt(tournament.tournamentInterval) * 60;
+
+//     const tournamentStartTime = new Date(tournament.createdAt);
+
+//     const currentTime = new Date().getTime();
+//     const timeDifference = currentTime - tournamentStartTime.getTime();
+//     const elapsedSeconds = timeDifference / 1000;
+
+//     // Calculate the current interval boundary
+//     const currentIntervalStart = Math.floor(elapsedSeconds / tournamentIntervalInSeconds) * tournamentIntervalInSeconds;
+
+//     // Calculate the next interval boundary
+//     const nextIntervalStart = currentIntervalStart + tournamentIntervalInSeconds;
+//     console.log("nextIntervalStart", new Date(nextIntervalStart * 1000))
+
+//     const remainingSeconds = nextIntervalStart - elapsedSeconds;
+
+//     console.log(currentTime + (remainingSeconds * 1000))
+
+//     const valid_upto = new Date(currentTime + (remainingSeconds * 1000))
+//     console.log(valid_upto);
+//     if (remainingSeconds <= 0) {
+//       // Update is_registered to 0 if the remaining time is less than or equal to the tournament interval
+//       await RegisteredTournament.findOneAndUpdate({
+//         tournament_id,
+//         player_id
+//       }, {
+//         is_registered: 0
+//       });
+//     } else {
+//       // Check if the player registered within the current interval
+//       if (remainingSeconds < tournamentIntervalInSeconds) {
+//         // Create a new record in the registeredTournament table
+//         const registeredTournament = new RegisteredTournament({
+//           tournament_id,
+//           player_id,
+//           play_amount,
+//           bonus_amount,
+//           players_count,
+//           is_registered: 1
+//         });
+
+//         // Save the record
+//         await registeredTournament.save();
+//       } else {
+//         // Update is_registered to 0 if the player registered in the next interval
+//         await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered: 0 });
+//       }
+//     }
+
+//     // Respond with success message
+//     return res.status(200).json({
+//       success: true,
+//       operator: "creator",
+//       room_no: "736453"
+//     });
+//   } catch (error) {
+//     console.error('Error registering player for tournament:', error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to register player for tournament.',
+//       error: error.message
+//     });
+//   }
+// };
+
 exports.registerTournament = async function (req, res) {
   try {
     // Extract data from the request body
@@ -1010,12 +1096,11 @@ exports.registerTournament = async function (req, res) {
 
     // Calculate the next interval boundary
     const nextIntervalStart = currentIntervalStart + tournamentIntervalInSeconds;
-    console.log("nextIntervalStart", new Date(nextIntervalStart * 1000))
 
     const remainingSeconds = nextIntervalStart - elapsedSeconds;
 
-    console.log(currentTime + (remainingSeconds * 1000))
-    const valid_upto = new Date(currentTime + (remainingSeconds * 1000))
+    const valid_upto = new Date(currentTime + (remainingSeconds * 1000));
+
     if (remainingSeconds <= 0) {
       // Update is_registered to 0 if the remaining time is less than or equal to the tournament interval
       await RegisteredTournament.findOneAndUpdate({
@@ -1034,14 +1119,18 @@ exports.registerTournament = async function (req, res) {
           play_amount,
           bonus_amount,
           players_count,
-          is_registered: 1
+          is_registered: 1,
+          valid_upto: valid_upto  // Set valid_upto to the calculated time
         });
 
         // Save the record
         await registeredTournament.save();
+
+        // Schedule a job to update is_registered to 0 at valid_upto time for the newly registered player
+        scheduleJobToUpdateIsRegistered(registeredTournament._id, valid_upto);
       } else {
-        // Update is_registered to 0 if the player registered in the next interval
-        await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered: 0 });
+        // Schedule a job to update is_registered to 0 at valid_upto time for an existing player
+        scheduleJobToUpdateIsRegisteredForExistingPlayer(tournament_id, player_id, valid_upto);
       }
     }
 
@@ -1061,6 +1150,39 @@ exports.registerTournament = async function (req, res) {
   }
 };
 
+// Function to schedule a job to update is_registered to 0 at valid_upto time
+function scheduleJobToUpdateIsRegistered(recordId, valid_upto) {
+  const currentTime = new Date().getTime();
+  const timeUntilUpdate = valid_upto.getTime() - currentTime;
+
+  if (timeUntilUpdate > 0) {
+    setTimeout(async () => {
+      try {
+        await RegisteredTournament.findByIdAndUpdate(recordId, { is_registered: 0 });
+        console.log(`Updated is_registered to 0 for record with ID ${recordId} at ${new Date()}`);
+      } catch (error) {
+        console.error('Error updating is_registered:', error);
+      }
+    }, timeUntilUpdate);
+  }
+}
+
+// Function to schedule a job to update is_registered to 0 at valid_upto time for an existing player
+function scheduleJobToUpdateIsRegisteredForExistingPlayer(tournament_id, player_id, valid_upto) {
+  const currentTime = new Date().getTime();
+  const timeUntilUpdate = valid_upto.getTime() - currentTime;
+
+  if (timeUntilUpdate > 0) {
+    setTimeout(async () => {
+      try {
+        await RegisteredTournament.findOneAndUpdate({ tournament_id, player_id }, { is_registered: 0 });
+        console.log(`Updated is_registered to 0 for player ${player_id} in tournament ${tournament_id} at ${new Date()}`);
+      } catch (error) {
+        console.error('Error updating is_registered:', error);
+      }
+    }, timeUntilUpdate);
+  }
+}
 
 
 exports.getAllNotification = async function (req, res) {

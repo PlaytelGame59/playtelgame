@@ -904,6 +904,7 @@ exports.getRejectedWithdraw = async function (req, res) {
 
 
 // new api's for admin
+
 exports.addNotice = async function (req, res) {
 try {
   const { message } = req.body;
