@@ -70,6 +70,14 @@ const PlayerSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    is_adhar_kyc: {
+        type: Boolean,
+        default: false
+    },
+    is_pan_kyc: {
+        type: Boolean,
+        default: false
+    },
     app: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'App'

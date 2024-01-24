@@ -2,7 +2,7 @@ const Admin = require('../models/Admin');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
 const Tournament = require("../models/tournament");
-const Disclamer = require('../models/Disclaimer');
+const Disclaimer = require('../models/Disclaimer');
 const Notification = require('../models/Notification');
 const configMulter = require('../configMulter')
 const multer = require('multer');
@@ -323,24 +323,24 @@ exports.deleteTorunment = async function (req, res) {
   }
 }
 
-exports.addDisclamer = async function (req, res) {
+exports.addDisclaimer = async function (req, res) {
   try {
     const {
-      addDisclamer
+      disclaimer
     } = req.body;
 
     // Create a new instance of the Disclamer
-    const newDisclamer = new Disclamer({
-      addDisclamer
+    const newDisclaimer = new Disclaimer({
+      disclaimer
     });
 
     // Save the new disclamer to the database
-    const savedDisclamer = await newDisclamer.save();
-    console.log("savedDisclamer", savedDisclamer)
+    const savedDisclaimer = await newDisclaimer.save();
+    console.log("savedDisclaimer", savedDisclaimer)
     // Respond with the saved disclamer data
     res.status(201).json({
       msg: "add disclamer data successfuly",
-      savedDisclamer,
+      savedDisclaimer,
       status: "success"
     });
   } catch (error) {
@@ -398,7 +398,7 @@ exports.addPlayer = async function (req, res) {
     });
   }
 }
-exports.getPlayer = async function (rea, res) {
+exports.getPlayer = async function (req, res) {
   try {
     // Fetch all tournament from the database
     const player = await Players.find();
@@ -416,50 +416,45 @@ exports.getPlayer = async function (rea, res) {
     });
   }
 }
-exports.updatePlayer = async function (req, res) {
 
+exports.updatePlayerDetails = async function (req, res) {
   try {
-    const playerId = req.body.playerId;
-    const {
-      name,
-      email,
-      player_image,
-      mobileNo
-    } = req.body;
+    const player_id = req.body.player_id;
+    const existingPlayer = await Players.findById(player_id);
 
-    // Find the player by ID
-    let player = await Players.findById(playerId);
-
-    if (player) {
-      // Update the player field
-      // player.playId = playId;   
-      player.name = name;
-      player.email = email;
-      player.player_image = player_image;
-      player.mobileNo = mobileNo
-      await player.save();
-
+    if (!existingPlayer) {
       return res.status(200).json({
-        success: true,
-        message: 'player updated successfully.',
-        playerId: player._id,
-        status: 'success'
-      });
-    } else {
-      return res.status(400).json({
         success: false,
-        message: 'player not found.'
+        message: 'Player not found.'
       });
     }
+
+    const {
+      mobile,
+      first_name,
+      email
+    } = req.body;
+
+    existingPlayer.first_name = first_name || existingPlayer.first_name;
+    existingPlayer.mobile = mobile || existingPlayer.mobile;
+    existingPlayer.email = email || existingPlayer.email;
+
+    await existingPlayer.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Player updated successfully.',
+      data: existingPlayer
+    });
   } catch (error) {
-    console.error('Error updating player details:', error);
+    console.error('Error updating Player:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to update player details .',
+      message: 'Failed to update Player.',
       error: error.message
     });
   }
-}
+};
 
 exports.deletePlayer = async function (req, res) {
   try {
@@ -509,46 +504,27 @@ exports.getleaderboard = async function (req, res) {
     });
   }
 };
-exports.getactivePlayer = async function (req, res) {
-  try {
-    const activePlayers = await Player.find({
-      isActive: true
-    });
 
-    return res.status(200).json({
-      success: true,
-      message: 'Active players retrieved successfully.',
-      activePlayers,
-    });
-  } catch (error) {
-    console.error('Error fetching active players:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch active players.',
-      error: error.message,
-    });
-  }
-}
 // Update player status endpoint
 exports.updateBanned = async function (req, res) {
   try {
     const {
-      playerId,
-      isBanned
+      player_id,
+      is_banned
     } = req.body;
     console.log('Request Body:', req.body);
 
     // Validate input
-    if (!playerId || isBanned === undefined) {
+    if (!player_id || is_banned === undefined) {
       return res.status(400).json({
         error: 'Invalid request. playerId and isBanned are required.'
       });
     }
 
     // Update player status in the database
-    const updatedPlayer = await Player.findByIdAndUpdate(
-      playerId, {
-        isBanned
+    const updatedPlayer = await Players.findByIdAndUpdate(
+      player_id, {
+        is_banned
       }, {
         new: true
       }
@@ -573,8 +549,8 @@ exports.updateBanned = async function (req, res) {
 // banned player
 exports.getBannedPlayers = async function (req, res) {
   try {
-    const bannedPlayers = await Player.find({
-      isBanned: 1
+    const bannedPlayers = await Players.find({
+      is_banned: 1
     }); // Fetch players where isBanned is 1 (true).
 
     return res.status(200).json({
@@ -595,7 +571,7 @@ exports.getBannedPlayers = async function (req, res) {
 
 
 // notification module <----------------------->
-exports.getNotification = async function (rea, res) {
+exports.getNotification = async function (req, res) {
   try {
     // Fetch all tournament from the database
     const notification = await Notification.find();
@@ -672,7 +648,7 @@ exports.addNotification = async function (req, res) {
 
 
 // Transaction module <----------------------->
-exports.getTransaction = async function (rea, res) {
+exports.getTransaction = async function (req, res) {
   try {
     // Fetch all tournament from the database
     const transaction = await Transaction.find();
@@ -1159,3 +1135,76 @@ exports.getPlayerList = async function (req, res) {
     });
   }
 }
+
+// active player list
+exports.getActivePlayers = async function (req, res) {
+  try {
+    // Find all players with is_active field set to true
+    const activePlayers = await Players.find({ is_active: true });
+
+    // Respond with the list of active players
+    return res.status(200).json({
+      success: true,
+      players: activePlayers,
+    });
+  } catch (error) {
+    console.error('Error getting active players:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to get active players.',
+      error: error.message,
+    });
+  }
+};
+
+// approve adhar KYC
+exports.approveAadharKyc = async function (req, res) {
+  try {
+    const { player_id } = req.body;
+
+    // Update status field in AdharKyc table
+    await AdharKYC.findOneAndUpdate({ player_id }, { $set: { status: true } });
+
+    // Update is_adhar_kyc field in Players table
+    await Players.findOneAndUpdate({ _id:player_id }, { $set: { is_adhar_kyc: true } });
+
+    // Respond with success message
+    return res.status(200).json({
+      success: true,
+      message: 'Aadhar KYC approved successfully.',
+    });
+  } catch (error) {
+    console.error('Error approving Aadhar KYC:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to approve Aadhar KYC.',
+      error: error.message,
+    });
+  }
+};
+
+// approve pan KYC
+exports.approvePanKyc = async function (req, res) {
+  try {
+    const { player_id } = req.body;
+
+    // Update status field in AdharKyc table
+    await PanKYC.findOneAndUpdate({ player_id }, { $set: { status: true } });
+
+    // Update is_adhar_kyc field in Players table
+    await Players.findOneAndUpdate({ _id:player_id }, { $set: { is_pan_kyc: true } });
+
+    // Respond with success message
+    return res.status(200).json({
+      success: true,
+      message: 'Pan KYC approved successfully.',
+    });
+  } catch (error) {
+    console.error('Error approving Pan KYC:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to approve Pan KYC.',
+      error: error.message,
+    });
+  }
+};

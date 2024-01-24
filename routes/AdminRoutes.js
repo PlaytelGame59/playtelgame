@@ -14,7 +14,7 @@ router.get('/tournaments-list', adminController.getTorunment);
 router.post('/update-tournament', adminController.updateTournament)
 router.post('/delete-tournaments-data', adminController.deleteTorunment);
 
-router.post('/add-disclamer', adminController.addDisclamer);
+router.post('/add-disclamer', adminController.addDisclaimer);
 router.post('/add-notification', adminController.addNotification)
 router.get('/get-notification', adminController.getNotification)
 
@@ -28,5 +28,11 @@ router.post('/update-withdraw-status', adminController.updateWithdrawStatus);
 router.get('/get-adhar-list', adminController.getPlayerAadharList);
 router.get('/get-pan-list', adminController.getPlayerPanList);
 router.get('/get-player-list', adminController.getPlayerList);
+router.get('/get-active-players', adminController.getActivePlayers);
+
+router.post('/approve-player-adhar', adminController.approveAadharKyc);
+router.post('/approve-player-pan', adminController.approvePanKyc);
+
+router
 
 module.exports = router;
