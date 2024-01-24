@@ -374,7 +374,7 @@ exports.addPlayer = async function (req, res) {
     // Create a new instance of the Player
     // const base64Data = req.file.buffer.toString('base64');
 
-    const newPlayer = new Player({
+    const newPlayer = new Players({
       // playerId, 
       name,
       email,
@@ -401,7 +401,7 @@ exports.addPlayer = async function (req, res) {
 exports.getPlayer = async function (rea, res) {
   try {
     // Fetch all tournament from the database
-    const player = await Player.find();
+    const player = await Players.find();
 
     // Respond with the list of player
     res.status(200).json({
@@ -428,7 +428,7 @@ exports.updatePlayer = async function (req, res) {
     } = req.body;
 
     // Find the player by ID
-    let player = await Player.findById(playerId);
+    let player = await Players.findById(playerId);
 
     if (player) {
       // Update the player field
