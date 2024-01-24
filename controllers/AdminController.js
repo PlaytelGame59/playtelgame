@@ -10,7 +10,9 @@ const Players = require('../models/Players');
 const WithdrawDetails = require('../models/WithdrawDetails');
 const Transaction = require('../models/TransactionModel')
 const Wallet = require('../models/WalletHistory');
-const Notice = require('../models/Notice')
+const Notice = require('../models/Notice');
+const AdharKYC = require('../models/AdharKYC')
+const PanKYC = require('../models/PanKYC')
 
 // Admin module <----------------------->
 exports.signUp = async function (req, res) {
@@ -212,6 +214,7 @@ exports.getTorunment = async function (req, res) {
     });
   }
 }
+
 exports.updateTournament = async function (req, res) {
   try {
     const tournamentId = req.body.tournamentId;
@@ -457,6 +460,7 @@ exports.updatePlayer = async function (req, res) {
     });
   }
 }
+
 exports.deletePlayer = async function (req, res) {
   try {
     const playerId = req.body.playerId
@@ -1094,3 +1098,63 @@ exports.updateWithdrawStatus = async function (req, res) {
     });
   }
 };
+
+// Adhar list 
+exports.getPlayerAadharList = async function (req, res) {
+  try {
+    // Fetch all tournament from the database
+    const adharList = await AdharKYC.find();
+
+    // Respond with the list of tournament
+    res.status(200).json({
+      msg: 'sucessfull',
+      adharList
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error
+    });
+  }
+}
+
+// pan list 
+exports.getPlayerPanList = async function (req, res) {
+  try {
+    // Fetch all tournament from the database
+    const panList = await PanKYC.find();
+
+    // Respond with the list of tournament
+    res.status(200).json({
+      msg: 'sucessfull',
+      panList
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error
+    });
+  }
+}
+
+// player list
+exports.getPlayerList = async function (req, res) {
+  try {
+    // Fetch all tournament from the database
+    const playerList = await Players.find();
+
+    // Respond with the list of tournament
+    res.status(200).json({
+      msg: 'sucessfull',
+      playerList
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error
+    });
+  }
+}

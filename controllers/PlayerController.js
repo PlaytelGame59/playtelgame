@@ -668,24 +668,41 @@ exports.changeFriendStatus = async function (req, res) {
 // };
 
 
+
 // exports.getleaderboard = async function (req, res) {
 //   try {
-//     // Fetch users from the database, sorted by a relevant metric (e.g., amount)
-//     const leaderboard = await PlayerModel.find().sort({
-//       wallet_amount: -1
-//     }).limit(10);
+//     const filter = {
+//       type: 'credit',
+//       wallet_type: 'winning_amount'
+//     };
 
-//     // You can customize the sorting and limit based on your application's requirements
+//     const aggregatedResults = await WalletHistory.aggregate([
+//       { $match: filter },
+//       {
+//         $group: {
+//           _id: '$player_id',
+//           totalAmount: { $sum: { $toDouble: '$amount' } } // Convert amount to number
+//         }
+//       },
+//       {
+//         $project: {
+//           _id: 0,
+//           player_id: '$_id',
+//           totalAmount: 1
+//         }
+//       }
+//     ]);
 
 //     return res.status(200).json({
 //       success: true,
-//       leaderboard
+//       playerHistory: aggregatedResults
 //     });
 //   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
+//     console.error('Error fetching player history:', error);
+//     return res.status(500).json({
 //       success: false,
-//       message: "Internal Server Error"
+//       message: 'Failed to fetch player history',
+//       error: error.message
 //     });
 //   }
 // };
@@ -714,9 +731,25 @@ exports.getleaderboard = async function (req, res) {
       }
     ]);
 
+    const playerIds = aggregatedResults.map(result => result.player_id);
+
+    // Fetch player names from the Player collection
+    const players = await Players.find({ _id: { $in: playerIds } }, { _id: 1, first_name: 1, mobile: 1 });
+
+    // Map player names to the aggregated results
+    const leaderboardWithNames = aggregatedResults.map(result => {
+      const playerInfo = players.find(player => player._id.equals(result.player_id));
+      return {
+        player_id: result.player_id,
+        totalAmount: result.totalAmount,
+        player_name: playerInfo ? playerInfo.first_name : 'Unknown',
+        mobile_no: playerInfo ? playerInfo.mobile : 'not provided'
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      playerHistory: aggregatedResults
+      playerHistory: leaderboardWithNames
     });
   } catch (error) {
     console.error('Error fetching player history:', error);
