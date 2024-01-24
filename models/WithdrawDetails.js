@@ -29,8 +29,8 @@ const WithdrawDetailsSchema = new mongoose.Schema({
         default: ''
     },
     status: {
-        type: Boolean,
-        default: false
+        type: Number,
+        default: 0 // 0= pending, 1= approved, 2=rejected
     }
 },{ collection: 'WithdrawDetails', timestamps: true });
 

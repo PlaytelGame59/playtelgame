@@ -491,37 +491,71 @@ exports.sendWithdrawalRequest = async function (req, res) {
 };
 
 exports.getWithdrawHistory = async function (req, res) {
-  try {
-    const {
-      player_id
-    } = req.body;
+//   try {
+//     const {
+//       player_id
+//     } = req.body;
 
-    // Find player by player_id
-    if (!ObjectId.isValid(player_id)) return res.status(400).json({
+//     // Find player by player_id
+//     if (!ObjectId.isValid(player_id)) return res.status(400).json({
+//       success: false,
+//       message: 'player_id is not valid'
+//     });
+//     const withdrawHistory = await WithdrawDetails.findById(player_id);
+
+//     if (!withdrawHistory) {
+//       return res.status(200).json({
+//         success: false,
+//         message: 'Withdrawl History not found.'
+//       });
+//     }
+
+//     res.status(200).json({
+//       success: true,
+//       withdrawHistory
+//     });
+//   } catch (error) {
+//     console.error('Error fetching withdrawl history:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch withdrawl history.',
+//       error: error.message
+//     });
+//   }
+// };
+try {
+  const { player_id } = req.body;
+
+  // Validate if player_id is a valid ObjectId
+  if (!ObjectId.isValid(player_id)) {
+    return res.status(400).json({
       success: false,
-      message: 'player_id is not valid'
-    });
-    const withdrawHistory = await WithdrawDetails.findById(player_id);
-
-    if (!withdrawHistory) {
-      return res.status(200).json({
-        success: false,
-        message: 'Withdrawl History not found.'
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      withdrawHistory
-    });
-  } catch (error) {
-    console.error('Error fetching withdrawl history:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch withdrawl history.',
-      error: error.message
+      message: 'player_id is not valid',
     });
   }
+
+  // Find all withdrawal records for the given player_id
+  const withdrawHistory = await WithdrawDetails.find({ player_id });
+
+  if (!withdrawHistory || withdrawHistory.length === 0) {
+    return res.status(200).json({
+      success: false,
+      message: 'Withdrawal History not found.',
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    withdrawHistory,
+  });
+} catch (error) {
+  console.error('Error fetching withdrawal history:', error);
+  res.status(500).json({
+    success: false,
+    message: 'Failed to fetch withdrawal history.',
+    error: error.message,
+  });
+}
 };
 
 // get player'swallet history

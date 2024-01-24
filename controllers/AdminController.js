@@ -1030,12 +1030,12 @@ exports.getAllNotices = async function (req, res) {
 // update player's withdraw data
 exports.updateWithdrawStatus = async function (req, res) {
   try {
-    const { player_id } = req.body;
+    const { player_id, status } = req.body;
 
-    if (!player_id) {
+    if (!player_id || status === undefined) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide player_id.',
+        message: 'Please provide player_id and status.',
       });
     }
 
@@ -1049,39 +1049,41 @@ exports.updateWithdrawStatus = async function (req, res) {
       });
     }
 
-    // Check if the status is already true
-    if (withdrawDetails.status) {
+    // Check if the status is already set
+    if (withdrawDetails.status !== 0) {
       return res.status(400).json({
         success: false,
-        message: 'Withdraw status is already true for the provided player_id.',
+        message: 'Withdraw status is already set for the provided player_id.',
       });
     }
 
-    // Update the WithdrawDetails status to true
-    withdrawDetails.status = true;
+    // Update the WithdrawDetails status
+    withdrawDetails.status = status;
 
     // Save the changes
     await withdrawDetails.save();
 
-    // Deduct amt_withdraw from wallet_amount in Players table
-    const player = await Players.findById(player_id);
+    if (status === 1) {
+      // Deduct amt_withdraw from wallet_amount in Players table
+      const player = await Players.findById(player_id);
 
-    if (!player) {
-      return res.status(404).json({
-        success: false,
-        message: 'Player not found with the provided player_id.',
-      });
+      if (!player) {
+        return res.status(404).json({
+          success: false,
+          message: 'Player not found with the provided player_id.',
+        });
+      }
+
+      // Deduct amt_withdraw from wallet_amount
+      player.wallet_amount -= withdrawDetails.amt_withdraw;
+
+      // Save the changes to the player's wallet_amount
+      await player.save();
     }
-
-    // Deduct amt_withdraw from wallet_amount
-    player.wallet_amount -= withdrawDetails.amt_withdraw;
-
-    // Save the changes to the player's wallet_amount
-    await player.save();
 
     return res.status(200).json({
       success: true,
-      message: 'Withdraw status updated successfully, and wallet_amount deducted.',
+      message: 'Withdraw status updated successfully.',
     });
   } catch (error) {
     console.error('Error updating withdraw status:', error);
