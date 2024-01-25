@@ -3,6 +3,7 @@ const FriendList = require('../models/FriendList');
 const WithdrawDetails = require('../models/WithdrawDetails');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto-browserify');
 require('dotenv').config();
 const multer = require('multer')
 const fs = require('fs');
@@ -17,6 +18,59 @@ const GameHistory = require('../models/GameHistory');
 const SaveBankDetails = require('../models/SaveBankDetails');
 const ObjectId = require('mongodb').ObjectId;
 
+
+// exports.userLogin = async function (req, res) {
+//   try {
+//     const {
+//       email,
+//       first_name,
+//       device_type,
+//       device_token,
+//       mobile
+//     } = req.body;
+
+//     // Check if the mobile number already exists in the Players table
+//     let existingUser = await Players.findOne({
+//       mobile
+//     });
+
+//     if (existingUser) {
+//       // If the user exists, return the existing data without updating
+//       return res.status(200).json({
+//         success: true,
+//         data: existingUser,
+//         message: 'User already exists. Returning existing data.',
+//       });
+//     } else {
+//       // If the user doesn't exist, create a new user entry
+//       const data = await Players.create({
+//         email,
+//         first_name,
+//         device_type,
+//         device_token,
+//         mobile,
+//       });
+
+//       const token = jwt.sign({
+//         mobile
+//       }, process.env.JWT_SECRET, {
+//         expiresIn: '1h'
+//       }); // Using the secret key from .env
+
+//       return res.status(200).json({
+//         success: true,
+//         data,
+//         token: token,
+//         message: 'New user created.',
+//       });
+//     }
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       error: error.message
+//     });
+//   }
+// };
 
 exports.userLogin = async function (req, res) {
   try {
@@ -42,35 +96,49 @@ exports.userLogin = async function (req, res) {
       });
     } else {
       // If the user doesn't exist, create a new user entry
-      const data = await Players.create({
-        email,
-        first_name,
-        device_type,
-        device_token,
-        mobile,
-      });
 
-      const token = jwt.sign({
+      // Generate a random alpha-numeric code (e.g., a referral code)
+      const referral_code = crypto.randomBytes(6).toString('hex').toUpperCase();
+
+      // console.log('Generated Referral Code:', referral_code);
+      
+      const fcm_token = jwt.sign({
         mobile
       }, process.env.JWT_SECRET, {
         expiresIn: '1h'
       }); // Using the secret key from .env
 
+      // Create a Players model instance
+      const player = new Players({
+        email,
+        first_name,
+        device_type,
+        device_token,
+        mobile,
+        referral_code: referral_code,
+        fcm_token: fcm_token
+      });
+
+      // Save the player instance to the database
+      const data = await player.save();
+
+      // console.log('Data after creation:', data);
+
       return res.status(200).json({
         success: true,
         data,
-        token: token,
-        message: 'New user created.',
+        fcm_token: fcm_token,
+        message: 'New user created with referral code.',
       });
     }
   } catch (error) {
+    console.error('Error in userLogin:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 const uploadImage = configMulter('playerImage/', [{
   name: 'player_image',
@@ -139,11 +207,41 @@ exports.addPlayerImage = async function (req, res) {
   });
 };
 
+
+// exports.getPlayerProfileImage = async function (req, res) {
+//   try {
+//     const {
+//       player_id
+//     } = req.body;
+
+//     // Find player by player_id and select only the profile_image field
+//     const player = await Players.findById(player_id).select('player_image');
+
+//     if (!player) {
+//       return res.status(200).json({
+//         success: false,
+//         message: 'Player not found.'
+//       });
+//     }
+
+//     // Send the profile_image data in the response
+//     res.status(200).json({
+//       success: true,
+//       player_image: player.player_image
+//     });
+//   } catch (error) {
+//     console.error('Error fetching profile image:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch player profile image.',
+//       error: error.message
+//     });
+//   }
+// };
+
 exports.getPlayerProfileImage = async function (req, res) {
   try {
-    const {
-      player_id
-    } = req.body;
+    const { player_id } = req.body;
 
     // Find player by player_id and select only the profile_image field
     const player = await Players.findById(player_id).select('player_image');
@@ -155,10 +253,13 @@ exports.getPlayerProfileImage = async function (req, res) {
       });
     }
 
-    // Send the profile_image data in the response
+    // Extract the file name from the player_image path
+    const fileName = player.player_image.replace(/^.*[\\/]/, '');
+
+    // Send the file name in the response
     res.status(200).json({
       success: true,
-      player_image: player.player_image
+      player_image: fileName
     });
   } catch (error) {
     console.error('Error fetching profile image:', error);
@@ -170,35 +271,6 @@ exports.getPlayerProfileImage = async function (req, res) {
   }
 };
 
-// exports.getPlayerDetails = async function (req, res) {
-//   try {
-//     const {
-//       player_id
-//     } = req.body;
-
-//     // Find player by player_id
-//     const player = await Players.findById(player_id).exec();
-
-//     if (!player) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'Player not found.'
-//       });
-//     }
-
-//     res.status(200).json({
-//       success: true,
-//       player
-//     });
-//   } catch (error) {
-//     console.error('Error fetching player details:', error);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Failed to fetch player details.',
-//       error: error.message
-//     });
-//   }
-// };
 
 
 exports.getPlayerDetails = async function (req, res) {
@@ -225,6 +297,7 @@ exports.getPlayerDetails = async function (req, res) {
         _id: player._id,
         first_name: player.first_name,
         mobile: player.mobile,
+        email: player.email,
         join_code: player.join_code,
         no_of_loose: player.no_of_loose,
         no_of_total_win: player.no_of_total_win,

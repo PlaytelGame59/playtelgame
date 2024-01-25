@@ -18,6 +18,10 @@ const PlayerSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    fcm_token: {
+        type: String,
+        default: ''
+    },
     mobile: {
         type: String,
         default: ''
@@ -49,6 +53,10 @@ const PlayerSchema = new mongoose.Schema({
     bonus_ammount: {
         type: Number,
         default: 0
+    },
+    referral_code: {
+        type: String,
+        default: ''
     },
     join_code: {
         type: String,
