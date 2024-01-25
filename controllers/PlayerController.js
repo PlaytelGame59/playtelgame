@@ -1468,35 +1468,35 @@ exports.getLatestWinner = async function (req, res) {
 
 exports.deleteNotification = async function (req, res) {
   try {
-    const notification_id = req.body.notification_id; // Assuming the key for skillId in the body is 'skillId'
+    const { notification_id } = req.body;
 
-    if (!notification_id || !mongoose.Types.ObjectId.isValid(notification_id)) {
+    if (!notification_id) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid notification ID'
+        message: 'Please provide notification_id.',
       });
     }
 
+    // Find the notice by ID and remove it
     const deletedNotification = await Notification.findByIdAndDelete(notification_id);
 
     if (!deletedNotification) {
       return res.status(404).json({
         success: false,
-        message: 'Notification not found.'
+        message: 'Notice not found.',
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      message: 'Notification deleted successfully',
-      deletedNotification
+      message: 'Notice deleted successfully.',
     });
   } catch (error) {
-    console.error('Error deleting Notification:', error);
-    res.status(500).json({
+    console.error('Error deleting notice:', error);
+    return res.status(500).json({
       success: false,
-      message: 'Failed to delete Notification',
-      error: error.message
+      message: 'Failed to delete notice.',
+      error: error.message,
     });
   }
 };
@@ -2587,55 +2587,43 @@ exports.getUsedReferralCodeList = async function (req, res) {
 };
 
 // refund to player 
-exports.refundForTournament = async function (req, res) {
-  try {
-    const { player_id, tournament_id, play_amount, bonus_amount } = req.body;
+// exports.refundForTournament = async function (req, res) {
+//   try {
+//     const { player_id, tournament_id, play_amount, bonus_amount } = req.body;
 
-    // Update winning_amount and bonus_amount in the Players table
-    const updatedPlayer = await Players.findByIdAndUpdate(
-      player_id,
-      {
-        $inc: { winning_amount: play_amount, bonus_ammount: bonus_amount }
-      },
-      { new: true }
-    );
+//     // Update winning_amount and bonus_amount in the Players table
+//     const updatedPlayer = await Players.findByIdAndUpdate(
+//       player_id,
+//       {
+//         $inc: { winning_amount: play_amount, bonus_ammount: bonus_amount }
+//       },
+//       { new: true }
+//     );
 
-    if (!updatedPlayer) {
-      return res.status(404).json({
-        success: false,
-        message: 'Player not found.'
-      });
-    }
+//     if (!updatedPlayer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Player not found.'
+//       });
+//     }
 
-    // Unregister the player for the specified tournament in the registeredTournament table
-    const unregisterResult = await RegisteredTournament.findOneAndUpdate(
-      { player_id, tournament_id },
-      { is_registered: 0 }
-    );
 
-    if (!unregisterResult) {
-      return res.status(404).json({
-        success: false,
-        message: 'Player is not registered for the specified tournament.'
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Tournament payment processed successfully.',
-      data: {
-        player: updatedPlayer,
-        tournament: unregisterResult
-      }
-    });
-  } catch (error) {
-    console.error('Error processing tournament payment:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-};
+//     return res.status(200).json({
+//       success: true,
+//       message: 'Tournament payment processed successfully.',
+//       data: {
+//         player: updatedPlayer,
+//         tournament: unregisterResult
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error processing tournament payment:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: error.message
+//     });
+//   }
+// };
 
 // get all notification
 exports.getAllNotification = async function (req, res) {
