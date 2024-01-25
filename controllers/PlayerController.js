@@ -16,6 +16,7 @@ const PanKYC = require('../models/PanKYC')
 const WalletHistory = require('../models/WalletHistory');
 const GameHistory = require('../models/GameHistory');
 const SaveBankDetails = require('../models/SaveBankDetails');
+const UsedReferralcodeList = require('../models/UsedReferralcodeList');
 const ObjectId = require('mongodb').ObjectId;
 
 
@@ -2394,3 +2395,250 @@ exports.sendNotificationToCustomer = async (req, res) => {
     });
   }
 };
+
+// apply referral code 
+// exports.applyReferralCode = async function (req, res) {
+//   try {
+//     const { player_id, referral_code } = req.body;
+
+//     // Check if the provided player_id exists in the Players table
+//     const player = await Players.findById(player_id);
+
+//     if (!player) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Player not found.',
+//       });
+//     }
+
+//     // Check if the provided referral_code exists in the Players table
+//     const referredPlayer = await Players.findOne({ referral_code });
+
+//     if (!referredPlayer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'Invalid referral code. Player not found.',
+//       });
+//     }
+
+//     // Check if the player is trying to use their own referral code
+//     if (player._id.toString() === referredPlayer._id.toString()) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Cannot use your own referral code.',
+//       });
+//     }
+
+//     // Check if the player has already used a referral code
+//     if (player.join_code) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Player has already used a referral code.',
+//       });
+//     }
+
+//     // Check if the referral code has already been used
+//     if (referredPlayer.join_code_used) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Referral code has already been used.',
+//       });
+//     }
+
+//     // Save the referral code in the join_code field of the player
+//     player.join_code = referral_code;
+//     await player.save();
+
+//     // Mark the referred player's referral code as used
+//     referredPlayer.join_code_used = true;
+//     await referredPlayer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       data: {
+//         player_using_referral_code: player,
+//         referred_player: referredPlayer,
+//       },
+//       message: 'Referral code saved successfully.',
+//     });
+//   } catch (error) {
+//     console.error('Error in applyReferralCode:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: error.message,
+//     });
+//   }
+// };
+
+
+exports.applyReferralCode = async function (req, res) {
+  try {
+    const { player_id, referral_code } = req.body;
+
+    // Check if the provided player_id exists in the Players table
+    const player = await Players.findById(player_id);
+
+    if (!player) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found.',
+      });
+    }
+
+    // Check if the provided referral_code exists in the Players table
+    const referredPlayer = await Players.findOne({ referral_code });
+
+    if (!referredPlayer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invalid referral code. Player not found.',
+      });
+    }
+
+    // Check if the player is trying to use their own referral code
+    if (player._id.toString() === referredPlayer._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot use your own referral code.',
+      });
+    }
+
+    // Check if the player has already used a referral code
+    if (player.join_code) {
+      return res.status(400).json({
+        success: false,
+        message: 'Player has already used a referral code.',
+      });
+    }
+
+    // Check if the referral code has already been used
+    if (referredPlayer.join_code_used) {
+      return res.status(400).json({
+        success: false,
+        message: 'Referral code has already been used.',
+      });
+    }
+
+    // Save the referral code in the join_code field of the player
+    player.join_code = referral_code;
+    await player.save();
+
+    // Mark the referred player's referral code as used
+    referredPlayer.join_code_used = true;
+    await referredPlayer.save();
+
+    // Create a new entry in UsedReferralcodeList table
+    const usedReferralEntry = new UsedReferralcodeList({
+      used_referral_code: referral_code,
+      player_id: player_id,
+      friend_id: referredPlayer._id,
+    });
+    await usedReferralEntry.save();
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        player_using_referral_code: player,
+        referred_player: referredPlayer,
+        used_referral_entry: usedReferralEntry,
+      },
+      message: 'Referral code saved successfully.',
+    });
+  } catch (error) {
+    console.error('Error in applyReferralCode:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+// used referral code list
+exports.getUsedReferralCodeList = async function (req, res) {
+  try {
+    const usedReferralcodeList = await UsedReferralcodeList.find({});
+
+    res.status(200).json({
+      success: true,
+      data: usedReferralcodeList
+    });
+  } catch (error) {
+    console.error('Error fetching used Referral code List:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch used Referral code List.',
+      error: error.message
+    });
+  }
+};
+
+// refund to player 
+exports.refundForTournament = async function (req, res) {
+  try {
+    const { player_id, tournament_id, play_amount, bonus_amount } = req.body;
+
+    // Update winning_amount and bonus_amount in the Players table
+    const updatedPlayer = await Players.findByIdAndUpdate(
+      player_id,
+      {
+        $inc: { winning_amount: play_amount, bonus_ammount: bonus_amount }
+      },
+      { new: true }
+    );
+
+    if (!updatedPlayer) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player not found.'
+      });
+    }
+
+    // Unregister the player for the specified tournament in the registeredTournament table
+    const unregisterResult = await RegisteredTournament.findOneAndUpdate(
+      { player_id, tournament_id },
+      { is_registered: 0 }
+    );
+
+    if (!unregisterResult) {
+      return res.status(404).json({
+        success: false,
+        message: 'Player is not registered for the specified tournament.'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Tournament payment processed successfully.',
+      data: {
+        player: updatedPlayer,
+        tournament: unregisterResult
+      }
+    });
+  } catch (error) {
+    console.error('Error processing tournament payment:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
+// get all notification
+exports.getAllNotification = async function (req, res) {
+  try {
+    const notification = await Notification.find();
+
+    return res.status(200).json({
+      success: true,
+      notification,
+    });
+  } catch (error) {
+    console.error('Error fetching Notification:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch Notification.',
+      error: error.message,
+    });
+  }
+};
+

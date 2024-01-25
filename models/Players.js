@@ -58,6 +58,10 @@ const PlayerSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    used_referral_code: {
+        type: String,
+        default: ''
+    },
     join_code: {
         type: String,
         default: ''

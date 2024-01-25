@@ -34,6 +34,6 @@ router.post('/approve-player-adhar', adminController.approveAadharKyc);
 router.post('/approve-player-pan', adminController.approvePanKyc);
 router.post('/send-notification-to-players', adminController.sendNotificationToPlayers);
 
-router
+router.get('/adhar-pan-list', adminController.getAllAdharPanKycList);
 
 module.exports = router;

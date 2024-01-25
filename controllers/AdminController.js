@@ -1474,3 +1474,47 @@ exports.sendNotificationToPlayers = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to send and store notifications.', error: error.message });
   }
 };
+
+// get all Adhar kyc and Pan Kyc list of players
+exports.getAllAdharPanKycList = async (req, res) => {
+try {
+  // Fetch all PanKYC data
+  const panKYCData = await PanKYC.find();
+  
+  // Fetch all AdharKYC data
+  const adharKYCData = await AdharKYC.find();
+
+  // Check if either PanKYC or AdharKYC data is not found
+  if (!panKYCData || !adharKYCData) {
+    return res.status(404).json({
+      success: false,
+      message: 'KYC data not found for any player.',
+    });
+  }
+
+  // Prepare the response object
+  const playersKYCData = panKYCData.map((panData) => {
+    const adharData = adharKYCData.find((adhar) => adhar.player_id.toString() === panData.player_id.toString());
+    return {
+      player_id: panData.player_id,
+      adhar_front_image: adharData ? adharData.aadhar_front_image : '',
+      adhar_back_image: adharData ? adharData.aadhar_back_image : '',
+      adhar_no: adharData ? adharData.aadhar_no : '',
+      pan_image: panData.pan_image,
+      pan_no: panData.pan_no,
+    };
+  });
+
+  return res.status(200).json({
+    success: true,
+    data: playersKYCData,
+    message: 'KYC data retrieved successfully for all players.',
+  });
+} catch (error) {
+  console.error('Error in getAllPlayersKYC:', error);
+  res.status(500).json({
+    success: false,
+    error: error.message,
+  });
+}
+};

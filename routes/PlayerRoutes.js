@@ -28,5 +28,9 @@ router.post('/store/game/history', playerController.storeGameHistory);
 router.post('/game/history/list', playerController.getGameHistoryList);
 router.post('/pan-upload', playerController.playerPanImage);
 router.get('/get-leaderboard', playerController.getleaderboard);
+router.post('/apply-referral-code', playerController.applyReferralCode);
+router.get('/used-referral-code-list', playerController.getUsedReferralCodeList);
+router.post('/refund-for-tournament', playerController.refundForTournament);
+router.get('/get-all-notification', playerController.getAllNotification);
 
 module.exports = router;
