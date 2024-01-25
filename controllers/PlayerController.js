@@ -3,7 +3,7 @@ const FriendList = require('../models/FriendList');
 const WithdrawDetails = require('../models/WithdrawDetails');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto-browserify');
+const crypto = require('crypto');
 require('dotenv').config();
 const multer = require('multer')
 const fs = require('fs');
