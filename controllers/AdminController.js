@@ -596,7 +596,7 @@ const uploadImage = configMulter('notificationImage/', [{
   name: 'notificationImg',
   maxCount: 1
 }]);
-// add_notification
+
 exports.addNotification = async function (req, res) {
   uploadImage(req, res, async function (err) {
     if (err instanceof multer.MulterError) {
@@ -621,14 +621,15 @@ exports.addNotification = async function (req, res) {
         notificationMessage
       } = req.body;
 
+      // Use the correct field name 'notificationImg'
       const notificationImg = req.files && req.files['notificationImg'] ?
         req.files['notificationImg'][0].path.replace(/^.*notificationImage[\\/]/, 'notificationImage/') :
         '';
 
-      console.log('notificationImg:', notificationImg);
+      // console.log('notificationImg:', notificationImg);
 
       const newNotification = new Notification({
-        list_id,
+        player_Ids:list_id,
         notificationTitle,
         notificationMessage,
         notificationImg: notificationImg,
@@ -1422,6 +1423,7 @@ exports.approvePanKyc = async function (req, res) {
 //     res.status(500).json({ success: false, message: 'Failed to send and store notifications.', error: error.message });
 //   }
 // };
+
 exports.sendNotificationToPlayers = async (req, res) => {
   try {
     const { player_Ids, notificationTitle, notificationMessage, notificationImg } = req.body;

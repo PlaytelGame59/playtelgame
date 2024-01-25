@@ -1004,7 +1004,18 @@ exports.saveBankDetails = async function (req, res) {
 
 exports.getNotificationList = async function (req, res) {
   try {
-    const notificationList = await Notification.find()
+    const { player_id } = req.body;
+
+    if (!player_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Player ID is required.'
+      });
+    }
+
+    const notificationList = await Notification.find({
+      player_Ids: { $in: [player_id] }
+    });
 
     res.status(200).json({
       success: true,
@@ -2354,47 +2365,50 @@ exports.playerPanImage = async function (req, res) {
 };
 
 // send notification
-exports.sendNotificationToCustomer = async (req, res) => {
-  try {
-    const {
-      player_id
-    } = req.body;
-    const player = await Players.findById(player_id);
-    const playerFCMToken = player?.fcmToken;
-    // const astrologer = await Astrologer.findById(astrologerId);
+// exports.sendNotificationToCustomer = async (req, res) => {
+//   try {
+//     const {
+//       player_id
+//     } = req.body;
+//     const player = await Players.findById(player_id);
+//     const playerFCMToken = player?.fcmToken;
+//     // const astrologer = await Astrologer.findById(astrologerId);
 
-    const astrologerData = {
-      notificationBody: 'Astrologer is responding for your chat request.',
-      type: 'Chat Request',
-      priority: 'High'
-    };
+//     const astrologerData = {
+//       notificationBody: 'Astrologer is responding for your chat request.',
+//       type: 'Chat Request',
+//       priority: 'High'
+//     };
 
-    const deviceToken = customerFCMToken;
+//     const deviceToken = customerFCMToken;
 
-    const title = `Response of Chat request from ${astrologerData.astrologerName || 'an Astrologer.'}`;
-    const notification = {
-      title,
-      body: astrologerData,
-    }
+//     const title = `Response of Chat request from ${astrologerData.astrologerName || 'an Astrologer.'}`;
+//     const notification = {
+//       title,
+//       body: astrologerData,
+//     }
 
-    // astrologer.chat_status = 'busy';
-    // await astrologer.save();
+//     // astrologer.chat_status = 'busy';
+//     // await astrologer.save();
 
-    await notificationService.sendNotification(deviceToken, notification);
+//     await notificationService.sendNotification(deviceToken, notification);
 
-    res.status(200).json({
-      success: true,
-      message: 'Notification sent successfully to the customer. Astrologer status updated to busy.'
-    });
-  } catch (error) {
-    console.error('Failed to send notification to the customer:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send notification to the customer.',
-      error: error.message
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: 'Notification sent successfully to the customer. Astrologer status updated to busy.'
+//     });
+//   } catch (error) {
+//     console.error('Failed to send notification to the customer:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to send notification to the customer.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
+
 
 // apply referral code 
 // exports.applyReferralCode = async function (req, res) {
