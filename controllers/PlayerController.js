@@ -621,23 +621,11 @@ exports.sendWithdrawalRequest = async function (req, res) {
     const {
       player_id,
       amt_withdraw,
+      payment_type,
       bank_account,
-      bank_ifsc
+      bank_ifsc,
+      upi_id,
     } = req.body;
-
-    // Check if there is a pending withdrawal request for the player
-    // const existingWithdrawalRequest = await WithdrawDetails.findOne({
-    //   player_id,
-    //   status: 0 // 0 means pending
-    // });
-
-    // if (existingWithdrawalRequest) {
-    //   // Player has a pending withdrawal request, cannot send another one
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: 'Cannot send another withdrawal request as a previous request is pending.',
-    //   });
-    // }
 
     // Get the player's data
     const player = await Players.findById(player_id);
@@ -660,22 +648,37 @@ exports.sendWithdrawalRequest = async function (req, res) {
     // Deduct the requested amount from winning_amount
     player.winning_amount -= amt_withdraw;
 
-    // Save the changes to the player's winning_amount
+    // Deduct the requested amount from wallet_amount based on payment type
+    if (payment_type === 'upi') {
+      // Assuming upi_id is a field in the player document
+      player.upi_id = upi_id;
+      // You may want to perform additional validation for UPI payments
+    } else if (payment_type === 'bank') {
+      // Assuming bank_account and bank_ifsc are fields in the player document
+      player.bank_account = bank_account;
+      player.bank_ifsc = bank_ifsc;
+      // You may want to perform additional validation for bank payments
+    } else {
+      // Handle other payment types if needed
+    }
+
+    // Save the changes to the player's documents
     await player.save();
 
     // Create a new withdrawal request entry
     const newWithdrawalRequest = new WithdrawDetails({
       player_id,
       amt_withdraw,
-      bank_account,
-      bank_ifsc
+      bank_account: payment_type === 'bank' ? bank_account : null,
+      bank_ifsc: payment_type === 'bank' ? bank_ifsc : null,
+      upi_id: payment_type === 'upi' ? upi_id : null,
     });
 
     await newWithdrawalRequest.save();
 
     res.status(200).json({
       success: true,
-      message: 'requested Amount withdrawlled successfully.',
+      message: 'Requested amount withdrawn successfully.',
       // data: newWithdrawalRequest
     });
   } catch (error) {
@@ -687,6 +690,7 @@ exports.sendWithdrawalRequest = async function (req, res) {
     });
   }
 };
+
 
 
 exports.getWithdrawHistory = async function (req, res) {
@@ -1290,6 +1294,24 @@ exports.registerTournament = async function (req, res) {
     } else {
       // Check if the player registered within the current interval
       if (remainingSeconds < tournamentIntervalInSeconds) {
+
+        const player = await Players.findById(player_id);
+        if (player) {
+          // Deduct play_amount from wallet_amount
+          player.wallet_amount -= play_amount;
+
+          // Deduct bonus_amount from bonus_amount
+          player.bonus_ammount -= bonus_amount;
+
+          // Save the changes to the player's wallet_amount and bonus_amount
+          await player.save();
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: 'Player not found.'
+          });
+        }
+
         // Create a new record in the registeredTournament table
         const registeredTournament = new RegisteredTournament({
           tournament_id,

@@ -462,7 +462,7 @@ exports.deletePlayer = async function (req, res) {
   try {
     const playerId = req.body.playerId
 
-    const deletedPlayers = await Player.findByIdAndDelete(playerId);
+    const deletedPlayers = await Players.findByIdAndDelete(playerId);
 
     if (!deletedPlayers) {
       return res.status(404).json({
@@ -485,27 +485,28 @@ exports.deletePlayer = async function (req, res) {
     });
   }
 }
-exports.getleaderboard = async function (req, res) {
-  try {
-    // Fetch users from the database, sorted by a relevant metric (e.g., amount)
-    const leaderboard = await Player.find().sort({
-      amount: -1
-    }).limit(4);
 
-    // You can customize the sorting and limit based on your application's requirements
+// exports.getleaderboard = async function (req, res) {
+//   try {
+//     // Fetch users from the database, sorted by a relevant metric (e.g., amount)
+//     const leaderboard = await Player.find().sort({
+//       amount: -1
+//     }).limit(4);
 
-    return res.status(200).json({
-      success: true,
-      leaderboard
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error"
-    });
-  }
-};
+//     // You can customize the sorting and limit based on your application's requirements
+
+//     return res.status(200).json({
+//       success: true,
+//       leaderboard
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error"
+//     });
+//   }
+// };
 
 // Update player status endpoint
 exports.updateBanned = async function (req, res) {
@@ -1519,4 +1520,79 @@ try {
     error: error.message,
   });
 }
+};
+
+// accept or reject withdrawal request 
+exports.processWithdrawalRequest = async function (req, res) {
+  try {
+    const { withdrawal_request_id, accept_request } = req.body;
+
+    // Check if the withdrawal request exists
+    const withdrawalRequest = await WithdrawDetails.findById({_id: withdrawal_request_id});
+    if (!withdrawalRequest) {
+      return res.status(404).json({
+        success: false,
+        message: 'Withdrawal request not found.',
+      });
+    }
+
+    // Extract player_id from the withdrawal request
+    const player_id = withdrawalRequest.player_id;
+
+    // Check if the status is already set to 1 or 2
+    if (withdrawalRequest.status === 1 || withdrawalRequest.status === 2) {
+      return res.status(400).json({
+        success: false,
+        message: 'Withdrawal request status has already been set and cannot be changed.',
+      });
+    }
+
+    // If the request is accepted (accept_request is 1), update the withdrawal request status to accepted
+    if (accept_request === 1) {
+      withdrawalRequest.status = 1; // 1 for accepted
+      await withdrawalRequest.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Withdrawal request accepted successfully.',
+      });
+    } else if (accept_request === 2) {
+      // If the request is rejected (accept_request is 2), return the amount to the player's wallet_amount
+      const player = await Players.findById(player_id);
+      if (player) {
+        // Return the withdrawn amount to wallet_amount
+        player.wallet_amount += withdrawalRequest.amt_withdraw;
+
+        // Save the changes to the player's wallet_amount
+        await player.save();
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Player not found.',
+        });
+      }
+
+      // Update withdrawal request status to rejected (2)
+      withdrawalRequest.status = 2; // 2 for rejected
+      await withdrawalRequest.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Withdrawal request rejected, amount returned to wallet_amount.',
+      });
+    } else {
+      // Handle invalid accept_request values
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid accept_request value.',
+      });
+    }
+  } catch (error) {
+    console.error('Error processing withdrawal request:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process withdrawal request.',
+      error: error.message
+    });
+  }
 };
