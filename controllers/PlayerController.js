@@ -2557,10 +2557,13 @@ exports.applyReferralCode = async function (req, res) {
 
     // Save the referral code in the join_code field of the player
     player.join_code = referral_code;
+    player.bonus_ammount += 50;
     await player.save();
 
     // Mark the referred player's referral code as used
+    
     referredPlayer.join_code_used = true;
+    referredPlayer.bonus_ammount += 50;
     await referredPlayer.save();
 
     // Create a new entry in UsedReferralcodeList table
