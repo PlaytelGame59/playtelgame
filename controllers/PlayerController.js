@@ -1341,22 +1341,6 @@ else{
   // Save the wallet transaction
   await walletTransaction.save();
 }
-          const walletTransaction = new WalletHistory({
-            player_id: player._id,
-            // tournament_id,
-            tournament:tournament_id,
-            player_id:player_id,
-            type:"debit",
-            amount: play_amount,
-            bonus_amount: bonus_amount,
-            transaction_type: 'tournament_registration',
-            notes:notes
-            // Add other relevant fields as needed
-          });
-  
-          // Save the wallet transaction
-          await walletTransaction.save();
-
         } else {
           return res.status(400).json({
             success: false,
