@@ -1253,7 +1253,8 @@ exports.registerTournament = async function (req, res) {
       player_id,
       play_amount,
       bonus_amount,
-      players_count
+      players_count,
+      notes
     } = req.body;
 
     // Check if the tournament exists
@@ -1306,21 +1307,56 @@ exports.registerTournament = async function (req, res) {
           // Save the changes to the player's wallet_amount and bonus_amount
           await player.save();
 
+if(bonus_amount != "0"){
+  const walletTransaction = new WalletHistory({
+    player_id: player._id,
+    // tournament_id,
+    tournament:tournament_id,
+    player_id:player_id,
+    type:"debit",
+    amount: play_amount,
+    bonus_amount: bonus_amount,
+    transaction_type: 'tournament_registration',
+    notes:notes
+    // Add other relevant fields as needed
+  });
 
+  // Save the wallet transaction
+  await walletTransaction.save();
+}
+else{
+  const walletTransaction = new WalletHistory({
+    player_id: player._id,
+    // tournament_id,
+    tournament:tournament_id,
+    player_id:player_id,
+    type:"debit",
+    amount: play_amount,
+    // bonus_amount: bonus_amount,
+    transaction_type: 'tournament_registration',
+    notes:notes
+    // Add other relevant fields as needed
+  });
+
+  // Save the wallet transaction
+  await walletTransaction.save();
+}
           const walletTransaction = new WalletHistory({
             player_id: player._id,
             // tournament_id,
             tournament:tournament_id,
             player_id:player_id,
             type:"debit",
-            amount: play_amount + bonus_amount,
+            amount: play_amount,
+            bonus_amount: bonus_amount,
             transaction_type: 'tournament_registration',
+            notes:notes
             // Add other relevant fields as needed
           });
   
           // Save the wallet transaction
           await walletTransaction.save();
-          
+
         } else {
           return res.status(400).json({
             success: false,

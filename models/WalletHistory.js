@@ -24,6 +24,10 @@ const WalletHistorySchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    bonus_amount: {
+        type: String,
+        default: ''
+    },
     /**
      * SUCCESSFUL, PENDING, INPROGRESS, FAILED
      */
