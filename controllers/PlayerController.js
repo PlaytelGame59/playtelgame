@@ -1326,20 +1326,6 @@ exports.registerTournament = async function (req, res) {
         // Save the record
         await registeredTournament.save();
 
-
-        const createHistory = new WalletHistory({
-          tournament:tournament_id,
-          player_id:player_id,
-          type:"debit",
-          amount:play_amount,
-          amount:bonus_amount,
-          // players_count,
-          // is_registered: 1,
-          // valid_upto: valid_upto  // Set valid_upto to the calculated time
-        });
-
-        // Save the record
-        await createHistory.save();
         // Schedule a job to update is_registered to 0 at valid_upto time for the newly registered player
         scheduleJobToUpdateIsRegistered(registeredTournament._id, valid_upto);
       } else {
@@ -2571,13 +2557,10 @@ exports.applyReferralCode = async function (req, res) {
 
     // Save the referral code in the join_code field of the player
     player.join_code = referral_code;
-    player.bonus_ammount += 50;
     await player.save();
 
     // Mark the referred player's referral code as used
-    
     referredPlayer.join_code_used = true;
-    referredPlayer.bonus_ammount += 50;
     await referredPlayer.save();
 
     // Create a new entry in UsedReferralcodeList table
