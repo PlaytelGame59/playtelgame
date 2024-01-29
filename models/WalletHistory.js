@@ -44,7 +44,7 @@ const WalletHistorySchema = new mongoose.Schema({
     },
     tournament: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Tournment'
+        ref: 'tournment'
     },
     txn_date: {
         type: Date,
