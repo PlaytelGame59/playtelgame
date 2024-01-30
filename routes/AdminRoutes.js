@@ -18,7 +18,6 @@ router.post('/add/disclamer', adminController.addDisclaimer);
 router.post('/add-notification', adminController.addNotification)
 router.get('/get-notification', adminController.getNotification)
 
-
 router.post('/add-notice', adminController.addNotice);
 router.post('/update-notice', adminController.updateNotice);
 router.post('/delete-notice', adminController.deleteNotice);
@@ -38,5 +37,6 @@ router.get('/adhar-pan-list', adminController.getAllAdharPanKycList);
 router.get('/active/player', adminController.getActivePlayers);
 
 router.post('/approve-reject-withdrawrequest', adminController.processWithdrawalRequest);
+router.post('/accept-reject-pan-kyc', adminController.updatePanKYCStatus);
 
 module.exports = router;

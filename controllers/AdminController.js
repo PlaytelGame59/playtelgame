@@ -400,6 +400,7 @@ exports.addPlayer = async function (req, res) {
     });
   }
 }
+
 exports.getPlayer = async function (req, res) {
   try {
     // Fetch all tournament from the database
@@ -783,8 +784,8 @@ exports.getWithdrawRequestList = async function (req, res) {
 
 exports.getapproveWithdraw = async function (req, res) {
   try {
-    const approveWithdraw = await Player.find({
-      isApprove: true
+    const approveWithdraw = await Players.find({
+      status:1
     });
 
     return res.status(200).json({
@@ -807,8 +808,8 @@ exports.getapproveWithdraw = async function (req, res) {
 exports.getRejectedWithdraw = async function (req, res) {
   try {
     // Find players with isApprove set to false (rejected)
-    const rejectedWithdraw = await Player.find({
-      isApprove: false
+    const rejectedWithdraw = await Players.find({
+      status:2
     });
 
     return res.status(200).json({
@@ -1480,46 +1481,100 @@ exports.sendNotificationToPlayers = async (req, res) => {
 
 // get all Adhar kyc and Pan Kyc list of players
 exports.getAllAdharPanKycList = async (req, res) => {
-try {
-  // Fetch all PanKYC data
-  const panKYCData = await PanKYC.find();
-  
-  // Fetch all AdharKYC data
-  const adharKYCData = await AdharKYC.find();
+  try {
+    // Fetch all PanKYC data
+    const panKYCData = await PanKYC.find();
+    
+    // Fetch all AdharKYC data
+    const adharKYCData = await AdharKYC.find();
 
-  // Check if either PanKYC or AdharKYC data is not found
-  if (!panKYCData || !adharKYCData) {
-    return res.status(404).json({
+    // Check if either PanKYC or AdharKYC data is not found
+    if (!panKYCData || !adharKYCData) {
+      return res.status(404).json({
+        success: false,
+        message: 'KYC data not found for any player.',
+      });
+    }
+
+    // Prepare the response object
+    const playersKYCData = panKYCData.map((panData) => {
+      const adharData = adharKYCData.find((adhar) => adhar.player_id.toString() === panData.player_id.toString());
+      return {
+        player_id: panData.player_id,
+        adhar_front_image: adharData ? adharData.aadhar_front_image : '',
+        adhar_back_image: adharData ? adharData.aadhar_back_image : '',
+        adhar_no: adharData ? adharData.aadhar_no : '',
+        pan_image: panData.pan_image,
+        pan_no: panData.pan_no,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: playersKYCData,
+      message: 'KYC data retrieved successfully for all players.',
+    });
+  } catch (error) {
+    console.error('Error in getAllPlayersKYC:', error);
+    res.status(500).json({
       success: false,
-      message: 'KYC data not found for any player.',
+      error: error.message,
     });
   }
+};
 
-  // Prepare the response object
-  const playersKYCData = panKYCData.map((panData) => {
-    const adharData = adharKYCData.find((adhar) => adhar.player_id.toString() === panData.player_id.toString());
-    return {
-      player_id: panData.player_id,
-      adhar_front_image: adharData ? adharData.aadhar_front_image : '',
-      adhar_back_image: adharData ? adharData.aadhar_back_image : '',
-      adhar_no: adharData ? adharData.aadhar_no : '',
-      pan_image: panData.pan_image,
-      pan_no: panData.pan_no,
-    };
-  });
 
-  return res.status(200).json({
-    success: true,
-    data: playersKYCData,
-    message: 'KYC data retrieved successfully for all players.',
-  });
-} catch (error) {
-  console.error('Error in getAllPlayersKYC:', error);
-  res.status(500).json({
-    success: false,
-    error: error.message,
-  });
-}
+// accept or reject Pan Kyc 
+exports.updatePanKYCStatus = async function (req, res) {
+  try {
+    const { pan_id, status } = req.body;
+
+    // Check if pan_id is provided
+    if (!pan_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Pan ID is required.'
+      });
+    }
+
+    // Update status in PanKYC table
+    const updatedPanKYC = await PanKYC.findByIdAndUpdate({_id:pan_id},
+      { status },
+      { new: true }
+    );
+
+    // Check if the PanKYC entry exists
+    if (!updatedPanKYC) {
+      return res.status(404).json({
+        success: false,
+        message: 'PanKYC entry not found.'
+      });
+    }
+
+    // Update is_pan_kyc in Players table
+    const playerId = updatedPanKYC.player_id;
+
+    if (playerId) {
+      await Players.findByIdAndUpdate(
+        playerId,
+        { is_pan_kyc: status },
+        // { new: true }
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'PanKYC status updated successfully.',
+      data: updatedPanKYC
+    });
+  } catch (error) {
+    console.error('Error updating PanKYC status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update PanKYC status.',
+      error: error.message
+    });
+  }
 };
 
 // accept or reject withdrawal request 

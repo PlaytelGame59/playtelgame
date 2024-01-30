@@ -17,6 +17,10 @@ const PanKYCSchema = new mongoose.Schema({
         type: String, // Assuming you store the image path or URL as a string
         default: ''    
     },
+    pan_ocr_data: {
+        type: String, // Assuming you store the image path or URL as a string
+        default: ''
+    },
     status: {
         type: Boolean,
         default: false

@@ -18,6 +18,8 @@ const GameHistory = require('../models/GameHistory');
 const SaveBankDetails = require('../models/SaveBankDetails');
 const UsedReferralcodeList = require('../models/UsedReferralcodeList');
 const ObjectId = require('mongodb').ObjectId;
+const Tesseract = require('tesseract.js');
+
 
 // exports.userLogin = async function (req, res) {
 //   try {
@@ -108,9 +110,9 @@ exports.userLogin = async function (req, res) {
       // Generate a random alpha-numeric code (e.g., a referral code)
       const referral_code = generateReferralCode();
 
-      const fcm_token = jwt.sign({ mobile }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
-      }); // Using the secret key from .env
+      // const fcm_token = jwt.sign({ mobile }, process.env.JWT_SECRET, {
+      //   expiresIn: '1h',
+      // }); // Using the secret key from .env
 
       // Create a Players model instance
       const player = new Players({
@@ -2475,10 +2477,13 @@ exports.playerPanImage = async function (req, res) {
       // Save the details in the AdharKYC table
       const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
 
+      const { data: { text } } = await Tesseract.recognize(pan_image, 'eng');
+
       const panKYC = new PanKYC({
         player_id: player_id,
         pan_no: pan_no,
-        pan_image: pan_image
+        pan_image: pan_image,
+        pan_ocr_data: text // Store the extracted text from OCR
       });
 
       await panKYC.save();
@@ -2638,7 +2643,7 @@ exports.applyReferralCode = async function (req, res) {
     const referredPlayer = await Players.findOne({ referral_code });
 
     if (!referredPlayer) {
-      return res.status(404).json({
+      return res.status(400).json({
         success: false,
         message: 'Invalid referral code. Player not found.',
       });
