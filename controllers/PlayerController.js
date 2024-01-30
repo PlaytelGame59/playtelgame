@@ -1380,7 +1380,7 @@ exports.registerTournament = async function (req, res) {
             tournament: tournament_id,
             type: "debit",
             amount: play_amount,
-            transaction_type: 'tournament_registration',
+            wallet_type: 'tournament_registration',
             notes: notes
             // Add other relevant fields as needed
           });
@@ -1394,7 +1394,7 @@ exports.registerTournament = async function (req, res) {
               tournament: tournament_id,
               type: "debit",
               amount: bonus_amount,
-              transaction_type: 'tournament_registration',
+              wallet_type: 'tournament_registration',
               notes: notes
               // Add other relevant fields as needed
             });
