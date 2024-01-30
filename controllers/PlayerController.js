@@ -19,7 +19,6 @@ const SaveBankDetails = require('../models/SaveBankDetails');
 const UsedReferralcodeList = require('../models/UsedReferralcodeList');
 const ObjectId = require('mongodb').ObjectId;
 
-
 // exports.userLogin = async function (req, res) {
 //   try {
 //     const {
@@ -44,49 +43,57 @@ const ObjectId = require('mongodb').ObjectId;
 //       });
 //     } else {
 //       // If the user doesn't exist, create a new user entry
-//       const data = await Players.create({
-//         email,
-//         first_name,
-//         device_type,
-//         device_token,
-//         mobile,
-//       });
 
-//       const token = jwt.sign({
+//       // Generate a random alpha-numeric code (e.g., a referral code)
+//       const referral_code = crypto.randomBytes(6).toString('hex').toUpperCase();
+
+//       // console.log('Generated Referral Code:', referral_code);
+      
+//       const fcm_token = jwt.sign({
 //         mobile
 //       }, process.env.JWT_SECRET, {
 //         expiresIn: '1h'
 //       }); // Using the secret key from .env
 
+//       // Create a Players model instance
+//       const player = new Players({
+//         email,
+//         first_name,
+//         device_type,
+//         device_token,
+//         mobile,
+//         referral_code: referral_code,
+//         fcm_token: fcm_token
+//       });
+
+//       // Save the player instance to the database
+//       const data = await player.save();
+
+//       // console.log('Data after creation:', data);
+
 //       return res.status(200).json({
 //         success: true,
 //         data,
-//         token: token,
-//         message: 'New user created.',
+//         fcm_token: fcm_token,
+//         referral_code: referral_code,
+//         message: 'New user created with referral code.',
 //       });
 //     }
 //   } catch (error) {
+//     console.error('Error in userLogin:', error);
 //     res.status(500).json({
 //       success: false,
-//       error: error.message
+//       error: error.message,
 //     });
 //   }
 // };
 
 exports.userLogin = async function (req, res) {
   try {
-    const {
-      email,
-      first_name,
-      device_type,
-      device_token,
-      mobile
-    } = req.body;
+    const { email, first_name, device_type, device_token, mobile } = req.body;
 
     // Check if the mobile number already exists in the Players table
-    let existingUser = await Players.findOne({
-      mobile
-    });
+    let existingUser = await Players.findOne({ mobile });
 
     if (existingUser) {
       // If the user exists, return the existing data without updating
@@ -99,14 +106,10 @@ exports.userLogin = async function (req, res) {
       // If the user doesn't exist, create a new user entry
 
       // Generate a random alpha-numeric code (e.g., a referral code)
-      const referral_code = crypto.randomBytes(6).toString('hex').toUpperCase();
+      const referral_code = generateReferralCode();
 
-      // console.log('Generated Referral Code:', referral_code);
-      
-      const fcm_token = jwt.sign({
-        mobile
-      }, process.env.JWT_SECRET, {
-        expiresIn: '1h'
+      const fcm_token = jwt.sign({ mobile }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
       }); // Using the secret key from .env
 
       // Create a Players model instance
@@ -116,19 +119,18 @@ exports.userLogin = async function (req, res) {
         device_type,
         device_token,
         mobile,
-        referral_code: referral_code,
-        fcm_token: fcm_token
+        referral_code,
+        fcm_token,
       });
 
       // Save the player instance to the database
       const data = await player.save();
 
-      // console.log('Data after creation:', data);
-
       return res.status(200).json({
         success: true,
         data,
-        fcm_token: fcm_token,
+        fcm_token,
+        referral_code,
         message: 'New user created with referral code.',
       });
     }
@@ -140,6 +142,19 @@ exports.userLogin = async function (req, res) {
     });
   }
 };
+
+function generateReferralCode() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const referralCodeLength = 6;
+  let referralCode = '';
+
+  for (let i = 0; i < referralCodeLength; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    referralCode += characters[randomIndex];
+  }
+
+  return referralCode;
+}
 
 const uploadImage = configMulter('playerImage/', [{
   name: 'player_image',
