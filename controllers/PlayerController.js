@@ -729,7 +729,8 @@ exports.getWithdrawHistory = async function (req, res) {
   }
 };
 
-// get player'swallet history
+// get player's wallet history
+
 exports.getPlayerWalletHistory = async function (req, res) {
   try {
     const {
@@ -768,6 +769,73 @@ exports.getPlayerWalletHistory = async function (req, res) {
     });
   }
 };
+
+// exports.getPlayerWalletHistory = async function (req, res) {
+//   try {
+//     const { player_id } = req.body;
+
+//     if (!ObjectId.isValid(player_id)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Player ID is not valid.'
+//       });
+//     }
+
+//     // Check if player_id exists in WalletHistory
+//     const walletHistory = await WalletHistory.find({
+//       player_id: player_id
+//     });
+
+//     if (!walletHistory || walletHistory.length === 0) {
+//       return res.status(200).json({
+//         success: false,
+//         message: 'No wallet history for the specified user.'
+//       });
+//     }
+
+//     // Separate entries for amount and bonus_amount if both are present
+//     const separatedWalletHistory = [];
+
+//     walletHistory.forEach((transaction) => {
+//       const { amount, bonus_amount, ...rest } = transaction;
+
+//       // Check if both amount and bonus_amount have values
+//       if (amount !== undefined && amount !== null && bonus_amount !== undefined && bonus_amount !== null) {
+//         // Create separate entries for amount and bonus_amount
+//         separatedWalletHistory.push({
+//           player_id,
+//           type: 'debit',
+//           wallet_type: 'play_balance',
+//           amount,
+//           ...rest
+//         });
+
+//         separatedWalletHistory.push({
+//           player_id,
+//           type: 'debit',
+//           wallet_type: 'bonus_balance',
+//           amount: bonus_amount,
+//           ...rest
+//         });
+//       } else {
+//         // Add the original entry to the response
+//         separatedWalletHistory.push(transaction);
+//       }
+//     });
+
+//     res.status(200).json({
+//       success: true,
+//       history: separatedWalletHistory
+//     });
+//   } catch (error) {
+//     console.error('Error fetching wallet history:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch wallet history.',
+//       error: error.message
+//     });
+//   }
+// };
 
 exports.changeFriendStatus = async function (req, res) {
   try {
@@ -1307,40 +1375,33 @@ exports.registerTournament = async function (req, res) {
           // Save the changes to the player's wallet_amount and bonus_amount
           await player.save();
 
-if(bonus_amount != "0"){
-  const walletTransaction = new WalletHistory({
-    player_id: player._id,
-    // tournament_id,
-    tournament:tournament_id,
-    player_id:player_id,
-    type:"debit",
-    amount: play_amount,
-    bonus_amount: bonus_amount,
-    transaction_type: 'tournament_registration',
-    notes:notes
-    // Add other relevant fields as needed
-  });
+          const playAmountTransaction = new WalletHistory({
+            player_id: player._id,
+            tournament: tournament_id,
+            type: "debit",
+            amount: play_amount,
+            transaction_type: 'tournament_registration',
+            notes: notes
+            // Add other relevant fields as needed
+          });
 
-  // Save the wallet transaction
-  await walletTransaction.save();
-}
-else{
-  const walletTransaction = new WalletHistory({
-    player_id: player._id,
-    // tournament_id,
-    tournament:tournament_id,
-    player_id:player_id,
-    type:"debit",
-    amount: play_amount,
-    // bonus_amount: bonus_amount,
-    transaction_type: 'tournament_registration',
-    notes:notes
-    // Add other relevant fields as needed
-  });
+          // Save the wallet transaction
+          await playAmountTransaction.save();
 
-  // Save the wallet transaction
-  await walletTransaction.save();
-}
+          if (bonus_amount !== "0") {
+            const bonusAmountTransaction = new WalletHistory({
+              player_id: player._id,
+              tournament: tournament_id,
+              type: "debit",
+              amount: bonus_amount,
+              transaction_type: 'tournament_registration',
+              notes: notes
+              // Add other relevant fields as needed
+            });
+
+            // Save the wallet transaction for bonus_amount
+            await bonusAmountTransaction.save();
+    }
         } else {
           return res.status(400).json({
             success: false,
