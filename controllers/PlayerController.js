@@ -304,7 +304,8 @@ exports.getPlayerDetails = async function (req, res) {
         no_of_total_win: player.no_of_total_win,
         is_banned: player.is_banned,
         is_adhar_kyc: player.is_adhar_kyc,
-        is_pan_kyc: player.is_adhar_kyc
+        is_pan_kyc: player.is_adhar_kyc,
+        referral_code: player.referral_code
       },
       wallet: {
         current_amount: player.wallet_amount || 0,
