@@ -35,4 +35,5 @@ router.get('/used-referral-code-list', playerController.getUsedReferralCodeList)
 router.post('/get-all-notification', playerController.getNotificationList);
 router.post('/get-pan-token', playerController.generatePanVerificationToken);
 
+
 module.exports = router;
