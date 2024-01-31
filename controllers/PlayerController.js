@@ -2509,7 +2509,6 @@ exports.playerPanImage = async function (req, res) {
 
 // Function to obtain an authentication token
 exports.generatePanVerificationToken = async function (req, res) {
-  console.log("pan ocr verification");
   
   try {
     const { clientId, clientSecret } = req.body;
@@ -2517,14 +2516,11 @@ exports.generatePanVerificationToken = async function (req, res) {
 
   const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
 
-    console.log("start");
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
       clientSecret: clientSecret,
     });
-    console.log("start");
     const responseData = response.data;
-    console.log("end");
 
     console.log(responseData);
     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
@@ -2591,7 +2587,51 @@ exports.verifyPanCard = async function (req, res) {
 
 // ************************* end of pan card upload and verification ************************* 
 
+// ************************* start of Aadhar card upload and verification ************************* 
 
+
+exports.generateAdharVerificationToken = async function (req, res) {
+  
+  try {
+    const { clientId, clientSecret } = req.body;
+  // console.log(clientId, clientSecret);
+
+  const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/adhaarocr'
+  ;
+
+    const response = await axios.post(tokenEndpoint, {
+      clientId: clientId,
+      clientSecret: clientSecret,
+    });
+    const responseData = response.data;
+
+    console.log(responseData);
+    if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
+      res.json({
+        success: true,
+        message: responseData.Message,
+        token: responseData.Token,
+        expiry: responseData.Expiry,
+      });
+    } else {
+      console.error('Token generation failed:', responseData);
+      res.status(400).json({
+        success: false,
+        message: 'Token generation failed',
+        details: responseData,
+      });
+    }
+  } catch (error) {
+    console.error('Error generating PAN verification token:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
+// ************************* start of Aadhar card upload and verification ************************* 
 
 // send notification
 // exports.sendNotificationToCustomer = async (req, res) => {
