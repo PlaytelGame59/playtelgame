@@ -2508,9 +2508,7 @@ exports.playerPanImage = async function (req, res) {
 };
 
 // Function to obtain an authentication token
-
 exports.generatePanVerificationToken = async function (req, res) {
-
   const { clientId, clientSecret } = req.body;
   const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/panocr/authorize';
 
@@ -2530,9 +2528,11 @@ exports.generatePanVerificationToken = async function (req, res) {
         expiry: responseData.Expiry,
       });
     } else {
-      res.json({
+      console.error('Token generation failed:', responseData);
+      res.status(400).json({
         success: false,
         message: 'Token generation failed',
+        details: responseData,
       });
     }
   } catch (error) {
@@ -2540,9 +2540,10 @@ exports.generatePanVerificationToken = async function (req, res) {
     res.status(500).json({
       success: false,
       message: 'Internal Server Error',
+      error: error.message,
     });
   }
-}
+};
 
 
 exports.verifyPanCard = async function (req, res) {
