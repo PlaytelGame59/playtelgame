@@ -2511,17 +2511,19 @@ exports.playerPanImage = async function (req, res) {
 exports.generatePanVerificationToken = async function (req, res) {
   console.log("pan ocr verification");
   const { clientId, clientSecret } = req.body;
-  console.log(clientId, clientSecret);
+  // console.log(clientId, clientSecret);
 
   const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/panocr/authorize';
 
   try {
+    console.log("start");
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
       clientSecret: clientSecret,
     });
-
+    console.log("abc");
     const responseData = response.data;
+    console.log("end");
 
     console.log(responseData);
     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
