@@ -2511,6 +2511,8 @@ exports.playerPanImage = async function (req, res) {
 exports.generatePanVerificationToken = async function (req, res) {
   console.log("pan ocr verification");
   const { clientId, clientSecret } = req.body;
+  console.log(clientId, clientSecret);
+
   const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/panocr/authorize';
 
   try {
