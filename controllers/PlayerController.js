@@ -2523,6 +2523,7 @@ exports.generatePanVerificationToken = async function (req, res) {
 
     const responseData = response.data;
 
+    console.log(responseData);
     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
       res.json({
         success: true,
