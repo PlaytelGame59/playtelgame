@@ -2596,7 +2596,7 @@ exports.generateAdharVerificationToken = async function (req, res) {
     const { clientId, clientSecret } = req.body;
   // console.log(clientId, clientSecret);
 
-  const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaar/authorize/adhaarocr'
+  const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr/authorize'
   ;
 
     const response = await axios.post(tokenEndpoint, {
