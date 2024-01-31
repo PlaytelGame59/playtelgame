@@ -19,7 +19,8 @@ const SaveBankDetails = require('../models/SaveBankDetails');
 const UsedReferralcodeList = require('../models/UsedReferralcodeList');
 const ObjectId = require('mongodb').ObjectId;
 const Tesseract = require('tesseract.js');
-
+const credentials = require('../config/credentials'); 
+const axios = require('axios');
 
 // exports.userLogin = async function (req, res) {
 //   try {
@@ -2427,6 +2428,8 @@ exports.getGameHistoryList = async function (req, res) {
   }
 };
 
+
+// ************************* pan card upload and verification ************************* 
 const uploadPanImage = configMulter('playerPanImage/', [{
   name: 'pan_image',
   maxCount: 1
@@ -2503,6 +2506,84 @@ exports.playerPanImage = async function (req, res) {
     }
   });
 };
+
+// Function to obtain an authentication token
+
+exports.generatePanVerificationToken = async function (req, res) {
+  
+  const { clientId, clientSecret } = req.body;
+  const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize';
+
+  try {
+    const response = await axios.post(tokenEndpoint, {
+      clientId: clientId,
+      clientSecret: clientSecret,
+    });
+
+    const responseData = response.data;
+
+    if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
+      res.json({
+        success: true,
+        message: responseData.Message,
+        token: responseData.Token,
+        expiry: responseData.Expiry,
+      });
+    } else {
+      res.json({
+        success: false,
+        message: 'Token generation failed',
+      });
+    }
+  } catch (error) {
+    console.error('Error generating PAN verification token:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+    });
+  }
+}
+
+
+exports.verifyPanCard = async function (req, res) {
+  try {
+    const {
+      clientId,
+      pan_no,
+      token
+    } = req.body;
+
+    // Verify PAN using the provided data
+    const verificationEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/verification/pan';
+
+    const response = await axios.post(verificationEndpoint, {
+      clientId,
+      pan_no,
+      token
+    });
+
+    const responseData = response.data;
+
+    res.json(responseData);
+  } catch (error) {
+    console.error('Error during PAN verification:', error.message);
+
+    // Log the complete error response for better debugging
+    if (error.response) {
+      console.error('API Response Data:', error.response.data);
+    }
+
+    res.status(500).json({
+      Status: 'Failure',
+      Subcode: '500',
+      Message: 'Internal Server Error'
+    });
+  }
+};
+
+// ************************* end of pan card upload and verification ************************* 
+
+
 
 // send notification
 // exports.sendNotificationToCustomer = async (req, res) => {

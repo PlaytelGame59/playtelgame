@@ -27,10 +27,12 @@ router.post('/refund-tournament-amount', playerController.refundTournamentAmount
 router.post('/store/game/history', playerController.storeGameHistory);
 router.post('/game/history/list', playerController.getGameHistoryList);
 router.post('/pan-upload', playerController.playerPanImage);
+router.post('/verify-pan', playerController.verifyPanCard);
 router.get('/get-leaderboard', playerController.getleaderboard);
 router.post('/apply-referral-code', playerController.applyReferralCode);
 router.get('/used-referral-code-list', playerController.getUsedReferralCodeList);
 // router.post('/refund-for-tournament', playerController.refundForTournament);
 router.post('/get-all-notification', playerController.getNotificationList);
+router.post('/get-pan-token', playerController.generatePanVerificationToken);
 
 module.exports = router;
