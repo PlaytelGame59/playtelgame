@@ -2553,7 +2553,7 @@ exports.generatePanVerificationToken = async function (req, res) {
 
 
 const uploadPanImage = configMulter('playerPanImage/', [{
-  name: 'pan_image',
+  name: 'front_image',
   maxCount: 1
 }]);
 
@@ -2590,13 +2590,13 @@ exports.verifyPanWithOCR = async function (req, res) {
       }
 
       // Verify PAN using OCR
-      const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
+      const front_image = req.files['front_image'] ? req.files['front_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
 
       const panVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr';
 
       const formData = new FormData();
       // Correct the field name here
-      formData.append('front_image', fs.createReadStream(pan_image));
+      formData.append('front_image', fs.createReadStream(front_image));
       formData.append('verification_id', verification_id);
       formData.append('clientid', clientid);
       formData.append('token', token);
