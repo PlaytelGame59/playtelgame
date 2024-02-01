@@ -2556,11 +2556,19 @@ const uploadPanImage = configMulter('playerPanImage/', [{
 
 exports.verifyPanWithOCR = async function (req, res) {
   try {
-    uploadPanImage(req, res, async (err) => {
+    uploadPanImage(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
-        return handleMulterError(res, err);
+        return res.status(500).json({
+          success: false,
+          message: 'Multer error',
+          error: err
+        });
       } else if (err) {
-        return handleUploadError(res, err);
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading file',
+          error: err
+        });
       }
 
       const {
@@ -2579,94 +2587,87 @@ exports.verifyPanWithOCR = async function (req, res) {
       }
 
       // Verify PAN using OCR
-      const pan_image = getPanImagePath(req);
+      const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
 
       const panVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr';
 
-      const formData = createFormData(pan_image, verification_id, clientid, token, pipe);
+      const formData = new FormData();
+      formData.append('front_image', fs.createReadStream(pan_image));
+      formData.append('verification_id', verification_id);
+      formData.append('clientid', clientid);
+      formData.append('token', token);
+      formData.append('pipe', pipe);
 
-      const response = await axios.post(panVerifyEndpoint, formData, {
-        headers: {
-          ...formData.getHeaders(),
-        },
-      });
+      try {
+        const response = await axios.post(panVerifyEndpoint, formData, {
+          headers: {
+            ...formData.getHeaders(),
+          },
+        });
 
-      handlePanVerificationResponse(res, response.data);
+        const responseData = response.data;
+
+        if (responseData.status === 'Success' && responseData.respCode === '00') {
+          const {
+            valid,
+            reference_id,
+            dob,
+            father,
+            name,
+            pan_type,
+            message,
+            pan,
+            respCode,
+            age,
+            status,
+            verification_id,
+          } = responseData;
+
+          // Process the successful response as needed
+          res.status(200).json({
+            success: true,
+            message: 'PAN verification successful.',
+            data: {
+              valid,
+              reference_id,
+              dob,
+              father,
+              name,
+              pan_type,
+              message,
+              pan,
+              respCode,
+              age,
+              status,
+              verification_id,
+            },
+          });
+        } else {
+          // Handle the case where PAN verification fails
+          res.status(400).json({
+            success: false,
+            message: 'PAN verification failed',
+            details: responseData,
+          });
+        }
+      } catch (error) {
+        // Handle API request errors
+        res.status(500).json({
+          success: false,
+          message: 'Internal Server Error',
+          error: error.message,
+        });
+      }
     });
   } catch (error) {
-    handleServerError(res, error);
-  }
-};
-
-// Helper function to handle Multer errors
-const handleMulterError = (res, err) => {
-  return res.status(500).json({
-    success: false,
-    message: 'Multer error',
-    error: err
-  });
-};
-
-// Helper function to handle upload errors
-const handleUploadError = (res, err) => {
-  return res.status(500).json({
-    success: false,
-    message: 'Error uploading file',
-    error: err
-  });
-};
-
-// Helper function to get PAN image path
-const getPanImagePath = (req) => {
-  return req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
-};
-
-// Helper function to create FormData
-const createFormData = (pan_image, verification_id, clientid, token, pipe) => {
-  const formData = new FormData();
-  formData.append('pan_image', fs.createReadStream(pan_image), { filename: req.files['pan_image'][0].originalname });
-  formData.append('verification_id', verification_id);
-  formData.append('clientid', clientid);
-  formData.append('token', token);
-  formData.append('pipe', pipe);
-  return formData;
-};
-
-// Helper function to handle PAN verification response
-const handlePanVerificationResponse = (res, responseData) => {
-  if (responseData.status === 'Success' && responseData.respCode === '00') {
-    // Process the successful response as needed
-    const successResponse = {
-      success: true,
-      message: 'PAN verification successful.',
-      data: {
-        // Extract necessary data from responseData
-      },
-    };
-    res.status(200).json(successResponse);
-  } else {
-    // Handle the case where PAN verification fails
-    const errorResponse = {
+    console.error('Error in PAN verification:', error.message);
+    res.status(500).json({
       success: false,
-      message: 'PAN verification failed',
-      details: responseData,
-    };
-    res.status(400).json(errorResponse);
+      message: 'Internal Server Error',
+      error: error.message,
+    });
   }
 };
-
-// Helper function to handle server errors
-const handleServerError = (res, error) => {
-  console.error('Error in PAN verification:', error.message);
-  res.status(500).json({
-    success: false,
-    message: 'Internal Server Error',
-    error: error.message,
-  });
-};
-
-
-
 
 // ************************* end of pan card upload and verification ************************* 
 
