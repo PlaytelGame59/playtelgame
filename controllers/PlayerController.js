@@ -21,6 +21,8 @@ const ObjectId = require('mongodb').ObjectId;
 const Tesseract = require('tesseract.js');
 const credentials = require('../config/credentials'); 
 const axios = require('axios');
+const FormData = require('form-data');
+
 
 // exports.userLogin = async function (req, res) {
 //   try {
@@ -2592,6 +2594,7 @@ exports.verifyPanWithOCR = async function (req, res) {
       const panVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr';
 
       const formData = new FormData();
+      // Correct the field name here
       formData.append('front_image', fs.createReadStream(pan_image));
       formData.append('verification_id', verification_id);
       formData.append('clientid', clientid);
