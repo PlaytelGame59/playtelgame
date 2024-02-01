@@ -2718,6 +2718,117 @@ exports.generateAdharVerificationToken = async function (req, res) {
   }
 };
 
+const uploadAadharImage = configMulter('playerAadharImage/', [
+  { name: 'aadhar_front_image', maxCount: 1 },
+  { name: 'aadhar_back_image', maxCount: 1 }
+]);
+
+exports.verifyAadharWithOCR = async function (req, res) {
+  try {
+    uploadAadharImage(req, res, async function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(500).json({
+          success: false,
+          message: 'Multer error',
+          error: {
+            name: err.name,
+            message: err.message,
+            code: err.code,
+            field: err.field,
+            storageErrors: err.storageErrors
+          }
+        });
+      } else if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading file',
+          error: err
+        });
+      }
+
+      const { verification_id, clientid, token, pipe } = req.body;
+
+      // Check if necessary parameters are provided
+      if (!verification_id || !clientid || !token || !pipe) {
+        return res.status(400).json({
+          success: false,
+          message: 'Verification ID, Client ID, Token, and Pipe are required.'
+        });
+      }
+
+      // Verify Aadhaar using OCR
+      const aadhar_front_image = req.files['aadhar_front_image'] ? req.files['aadhar_front_image'][0].path.replace(/^.*playerAadharImage[\\/]/, 'playerAadharImage/') : '';
+      const aadhar_back_image = req.files['aadhar_back_image'] ? req.files['aadhar_back_image'][0].path.replace(/^.*playerAadharImage[\\/]/, 'playerAadharImage/') : '';
+
+      if (!fs.existsSync(aadhar_front_image) || !fs.existsSync(aadhar_back_image)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Aadhaar image file not found.'
+        });
+      }
+
+      const aadharVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr';
+
+      const formData = new FormData();
+      formData.append('aadhar_front_image', fs.createReadStream(aadhar_front_image));
+      formData.append('aadhar_back_image', fs.createReadStream(aadhar_back_image));
+      formData.append('verification_id', verification_id);
+      formData.append('clientid', clientid);
+      formData.append('token', token);
+      formData.append('pipe', pipe);
+
+      try {
+        const response = await axios.post(aadharVerifyEndpoint, formData, {
+          headers: { ...formData.getHeaders() },
+        });
+
+        const responseData = response.data;
+
+        if (responseData.status === 'VALID' && responseData.respCode === '00') {
+          const {
+            pincode, address, gender, reference_id, father,
+            message, adhaar_no, year_of_birth, verification_id,
+            valid, name, state, respCode, status
+          } = responseData;
+
+          // Process the successful response as needed
+          res.status(200).json({
+            success: true,
+            message: 'Aadhaar verification successful.',
+            data: {
+              pincode, address, gender, reference_id, father,
+              message, adhaar_no, year_of_birth, verification_id,
+              valid, name, state, respCode, status
+            },
+          });
+        } else {
+          // Handle the case where Aadhaar verification fails
+          res.status(400).json({
+            success: false,
+            message: 'Aadhaar verification failed',
+            details: responseData,
+          });
+        }
+      } catch (error) {
+        // Handle API request errors
+        res.status(500).json({
+          success: false,
+          message: 'Internal Server Error',
+          error: error.message,
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error in Aadhaar verification:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
+
 // ************************* start of Aadhar card upload and verification ************************* 
 
 // send notification
