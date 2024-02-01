@@ -26,7 +26,7 @@ router.get('/tournament/list', playerController.getTournamentList);
 router.post('/refund-tournament-amount', playerController.refundTournamentAmount);
 router.post('/store/game/history', playerController.storeGameHistory);
 router.post('/game/history/list', playerController.getGameHistoryList);
-router.post('/pan-upload', playerController.playerPanImage);
+// router.post('/pan-upload', playerController.playerPanImage);
 router.post('/verify-pan', playerController.verifyPanCard);
 router.get('/get-leaderboard', playerController.getleaderboard);
 router.post('/apply-referral-code', playerController.applyReferralCode);
