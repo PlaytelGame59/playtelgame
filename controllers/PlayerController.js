@@ -2555,22 +2555,22 @@ const uploadPanImage = configMulter('playerPanImage/', [{
 }]);
 
 exports.verifyPanWithOCR = async function (req, res) {
-  uploadPanImage(req, res, async function (err) {
-    if (err instanceof multer.MulterError) {
-      return res.status(500).json({
-        success: false,
-        message: 'Multer error',
-        error: err
-      });
-    } else if (err) {
-      return res.status(500).json({
-        success: false,
-        message: 'Error uploading file',
-        error: err
-      });
-    }
+  try {
+     uploadPanImage(req, res, async function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(500).json({
+          success: false,
+          message: 'Multer error',
+          error: err
+        });
+      } else if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading file',
+          error: err
+        });
+      }
 
-    try {
       const {
         verification_id,
         clientid,
@@ -2592,7 +2592,7 @@ exports.verifyPanWithOCR = async function (req, res) {
       const panVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr';
 
       const formData = new FormData();
-      formData.append('pan_image', pan_image, { filename: req.files['pan_image'][0].originalname });
+      formData.append('pan_image', fs.createReadStream(pan_image), { filename: req.files['pan_image'][0].originalname });
       formData.append('verification_id', verification_id);
       formData.append('clientid', clientid);
       formData.append('token', token);
@@ -2606,46 +2606,60 @@ exports.verifyPanWithOCR = async function (req, res) {
 
       const responseData = response.data;
 
-      if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-        // PAN verification successful, proceed to save details in the PanKYC table
-        const pan_no = responseData.PAN; // Assuming PAN information is returned in the response
+      if (responseData.status === 'Success' && responseData.respCode === '00') {
+        const {
+          valid,
+          reference_id,
+          dob,
+          father,
+          name,
+          pan_type,
+          message,
+          pan,
+          respCode,
+          age,
+          status,
+          verification_id,
+        } = responseData;
 
-        const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
-
-        const { data: { text } } = await Tesseract.recognize(pan_image, 'eng');
-
-        const panKYC = new PanKYC({
-          player_id: existingPlayer._id,
-          pan_no: pan_no,
-          pan_image: pan_image,
-          pan_ocr_data: text // Store the extracted text from OCR
-        });
-
-        await panKYC.save();
-
+        // Process the successful response as needed
         res.status(200).json({
           success: true,
-          message: 'PAN verification successful. PanKYC details saved successfully.',
-          data: panKYC
+          message: 'PAN verification successful.',
+          data: {
+            valid,
+            reference_id,
+            dob,
+            father,
+            name,
+            pan_type,
+            message,
+            pan,
+            respCode,
+            age,
+            status,
+            verification_id,
+          },
         });
       } else {
-        console.error('PAN verification failed:', responseData);
+        // Handle the case where PAN verification fails
         res.status(400).json({
           success: false,
           message: 'PAN verification failed',
           details: responseData,
         });
       }
-    } catch (error) {
-      console.error('Error verifying PAN with OCR:', error.message);
-      res.status(500).json({
-        success: false,
-        message: 'Internal Server Error',
-        error: error.message,
-      });
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Error in PAN verification:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
 };
+
 
 // ************************* end of pan card upload and verification ************************* 
 
