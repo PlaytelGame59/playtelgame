@@ -34,6 +34,7 @@ router.get('/used-referral-code-list', playerController.getUsedReferralCodeList)
 // router.post('/refund-for-tournament', playerController.refundForTournament);
 router.post('/get-all-notification', playerController.getNotificationList);
 router.post('/get-pan-token', playerController.generatePanVerificationToken);
+router.post('/verify-pan-ocr', playerController.verifyPanWithOCR);
 router.post('/get-adhaar-token', playerController.generateAdharVerificationToken);
 
 module.exports = router;

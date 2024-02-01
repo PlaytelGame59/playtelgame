@@ -2430,82 +2430,82 @@ exports.getGameHistoryList = async function (req, res) {
 
 
 // ************************* pan card upload and verification ************************* 
-const uploadPanImage = configMulter('playerPanImage/', [{
-  name: 'pan_image',
-  maxCount: 1
-}]);
+// const uploadPanImage = configMulter('playerPanImage/', [{
+//   name: 'pan_image',
+//   maxCount: 1
+// }]);
 
-exports.playerPanImage = async function (req, res) {
-  uploadPanImage(req, res, async function (err) {
-    if (err instanceof multer.MulterError) {
-      return res.status(500).json({
-        success: false,
-        message: 'Multer error',
-        error: err
-      });
-    } else if (err) {
-      return res.status(500).json({
-        success: false,
-        message: 'Error uploading file',
-        error: err
-      });
-    }
+// exports.playerPanImage = async function (req, res) {
+//   uploadPanImage(req, res, async function (err) {
+//     if (err instanceof multer.MulterError) {
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Multer error',
+//         error: err
+//       });
+//     } else if (err) {
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Error uploading file',
+//         error: err
+//       });
+//     }
 
-    try {
-      const {
-        player_id,
-        pan_no
-      } = req.body;
+//     try {
+//       const {
+//         player_id,
+//         pan_no
+//       } = req.body;
 
-      // Check if player_id is provided
-      if (!player_id) {
-        return res.status(400).json({
-          success: false,
-          message: 'Player ID and type are required.'
-        });
-      }
+//       // Check if player_id is provided
+//       if (!player_id) {
+//         return res.status(400).json({
+//           success: false,
+//           message: 'Player ID and type are required.'
+//         });
+//       }
 
-      // Check if the player with the given player_id exists
-      const existingPlayer = await Players.findOne({
-        _id: player_id
-      });
+//       // Check if the player with the given player_id exists
+//       const existingPlayer = await Players.findOne({
+//         _id: player_id
+//       });
 
-      if (!existingPlayer) {
-        return res.status(404).json({
-          success: false,
-          message: 'Player not found.'
-        });
-      }
+//       if (!existingPlayer) {
+//         return res.status(404).json({
+//           success: false,
+//           message: 'Player not found.'
+//         });
+//       }
 
-      // Save the details in the AdharKYC table
-      const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
+//       // Save the details in the AdharKYC table
+//       const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
 
-      const { data: { text } } = await Tesseract.recognize(pan_image, 'eng');
+//       const { data: { text } } = await Tesseract.recognize(pan_image, 'eng');
 
-      const panKYC = new PanKYC({
-        player_id: player_id,
-        pan_no: pan_no,
-        pan_image: pan_image,
-        pan_ocr_data: text // Store the extracted text from OCR
-      });
+//       const panKYC = new PanKYC({
+//         player_id: player_id,
+//         pan_no: pan_no,
+//         pan_image: pan_image,
+//         pan_ocr_data: text // Store the extracted text from OCR
+//       });
 
-      await panKYC.save();
+//       await panKYC.save();
 
-      res.status(200).json({
-        success: true,
-        message: 'panKYC details saved successfully.',
-        data: panKYC
-      });
-    } catch (error) {
-      console.error('Error saving panKYC details:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to save panKYC details.',
-        error: error.message
-      });
-    }
-  });
-};
+//       res.status(200).json({
+//         success: true,
+//         message: 'panKYC details saved successfully.',
+//         data: panKYC
+//       });
+//     } catch (error) {
+//       console.error('Error saving panKYC details:', error);
+//       res.status(500).json({
+//         success: false,
+//         message: 'Failed to save panKYC details.',
+//         error: error.message
+//       });
+//     }
+//   });
+// };
 
 // Function to obtain an authentication token
 exports.generatePanVerificationToken = async function (req, res) {
@@ -2549,40 +2549,102 @@ exports.generatePanVerificationToken = async function (req, res) {
 };
 
 
-exports.verifyPanCard = async function (req, res) {
-  try {
-    const {
-      clientId,
-      pan_no,
-      token
-    } = req.body;
+const uploadPanImage = configMulter('playerPanImage/', [{
+  name: 'pan_image',
+  maxCount: 1
+}]);
 
-    // Verify PAN using the provided data
-    const verificationEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/verification/pan';
-
-    const response = await axios.post(verificationEndpoint, {
-      clientId,
-      pan_no,
-      token
-    });
-
-    const responseData = response.data;
-
-    res.json(responseData);
-  } catch (error) {
-    console.error('Error during PAN verification:', error.message);
-
-    // Log the complete error response for better debugging
-    if (error.response) {
-      console.error('API Response Data:', error.response.data);
+exports.verifyPanWithOCR = async function (req, res) {
+  uploadPanImage(req, res, async function (err) {
+    if (err instanceof multer.MulterError) {
+      return res.status(500).json({
+        success: false,
+        message: 'Multer error',
+        error: err
+      });
+    } else if (err) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error uploading file',
+        error: err
+      });
     }
 
-    res.status(500).json({
-      Status: 'Failure',
-      Subcode: '500',
-      Message: 'Internal Server Error'
-    });
-  }
+    try {
+      const {
+        verification_id,
+        clientid,
+        token,
+        pipe
+      } = req.body;
+
+      // Check if necessary parameters are provided
+      if (!verification_id || !clientid || !token || !pipe) {
+        return res.status(400).json({
+          success: false,
+          message: 'Verification ID, Client ID, Token, and Pipe are required.'
+        });
+      }
+
+      // Verify PAN using OCR
+      const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
+
+      const panVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr';
+
+      const formData = new FormData();
+      formData.append('pan_image', pan_image, { filename: req.files['pan_image'][0].originalname });
+      formData.append('verification_id', verification_id);
+      formData.append('clientid', clientid);
+      formData.append('token', token);
+      formData.append('pipe', pipe);
+
+      const response = await axios.post(panVerifyEndpoint, formData, {
+        headers: {
+          ...formData.getHeaders(),
+        },
+      });
+
+      const responseData = response.data;
+
+      if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
+        // PAN verification successful, proceed to save details in the PanKYC table
+        const pan_no = responseData.PAN; // Assuming PAN information is returned in the response
+
+        const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
+
+        const { data: { text } } = await Tesseract.recognize(pan_image, 'eng');
+
+        const panKYC = new PanKYC({
+          player_id: existingPlayer._id,
+          pan_no: pan_no,
+          pan_image: pan_image,
+          pan_ocr_data: text // Store the extracted text from OCR
+        });
+
+        await panKYC.save();
+
+        res.status(200).json({
+          success: true,
+          message: 'PAN verification successful. PanKYC details saved successfully.',
+          data: panKYC
+        });
+      } else {
+        console.error('PAN verification failed:', responseData);
+        res.status(400).json({
+          success: false,
+          message: 'PAN verification failed',
+          details: responseData,
+        });
+      }
+    } catch (error) {
+      console.error('Error verifying PAN with OCR:', error.message);
+      res.status(500).json({
+        success: false,
+        message: 'Internal Server Error',
+        error: error.message,
+      });
+    }
+  });
 };
 
 // ************************* end of pan card upload and verification ************************* 
