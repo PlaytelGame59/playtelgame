@@ -2555,7 +2555,7 @@ exports.playerPanImage = async function (req, res) {
 // };
 
 
-const generateUniqueVerificationId = () => {
+const generateVerificationId = () => {
   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
   return 'v' + randomNumber;
 };
@@ -2568,7 +2568,7 @@ exports.generatePanVerificationToken = async function (req, res) {
     const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
 
     // Generate verification_id
-    const verification_id = generateUniqueVerificationId();
+    const verification_id = generateVerificationId();
 
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
