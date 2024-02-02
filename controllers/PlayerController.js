@@ -2555,98 +2555,98 @@ exports.playerPanImage = async function (req, res) {
 // };
 
 
-// const generateUniqueVerificationId = () => {
-//   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
-//   return 'v' + randomNumber;
-// };
-
-
-// exports.generatePanVerificationToken = async function (req, res) {
-//   try {
-//     const { clientId, clientSecret } = req.body;
-
-//     const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
-
-//     // Generate verification_id
-//     const verification_id = generateUniqueVerificationId();
-
-//     const response = await axios.post(tokenEndpoint, {
-//       clientId: clientId,
-//       clientSecret: clientSecret,
-//       verification_id: verification_id, // Include verification_id in the request
-//     });
-
-//     const responseData = response.data;
-
-//     console.log(responseData);
-//     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-//       res.json({
-//         success: true,
-//         message: responseData.Message,
-//         token: responseData.Token,
-//         expiry: responseData.Expiry,
-//         verification_id: verification_id, // Include verification_id in the response
-//       });
-//     } else {
-//       console.error('Token generation failed:', responseData);
-//       res.status(400).json({
-//         success: false,
-//         message: 'Token generation failed',
-//         details: responseData,
-//       });
-//     }
-//   } catch (error) {
-//     console.error('Error generating PAN verification token:', error.message);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal Server Error',
-//       error: error.message,
-//     });
-//   }
-// };
-
-
 const generateUniqueVerificationId = () => {
   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
   return 'v' + randomNumber;
 };
 
-const generatePanVerificationToken = async (verificationId, clientId, clientSecret) => {
+
+exports.generatePanVerificationToken = async function (req, res) {
   try {
+    const { clientId, clientSecret } = req.body;
+
     const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
+
+    // Generate verification_id
+    const verification_id = generateUniqueVerificationId();
+
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
       clientSecret: clientSecret,
-      verification_id: verificationId,
+      verification_id: verification_id, // Include verification_id in the request
     });
 
     const responseData = response.data;
 
+    console.log(responseData);
     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-      return {
+      res.json({
         success: true,
         message: responseData.Message,
         token: responseData.Token,
         expiry: responseData.Expiry,
-        verification_id: verificationId,
-      };
+        verification_id: verification_id, // Include verification_id in the response
+      });
     } else {
       console.error('Token generation failed:', responseData);
-      return {
+      res.status(400).json({
         success: false,
         message: 'Token generation failed',
         details: responseData,
-      };
+      });
     }
   } catch (error) {
     console.error('Error generating PAN verification token:', error.message);
-    return {
+    res.status(500).json({
       success: false,
       message: 'Internal Server Error',
       error: error.message,
-    };
+    });
   }
 };
+
+
+// const generateUniqueVerificationId = () => {
+//   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
+//   return 'v' + randomNumber;
+// };
+
+// const generatePanVerificationToken = async (verificationId, clientId, clientSecret) => {
+//   try {
+//     const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
+//     const response = await axios.post(tokenEndpoint, {
+//       clientId: clientId,
+//       clientSecret: clientSecret,
+//       verification_id: verificationId,
+//     });
+
+//     const responseData = response.data;
+
+//     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
+//       return {
+//         success: true,
+//         message: responseData.Message,
+//         token: responseData.Token,
+//         expiry: responseData.Expiry,
+//         verification_id: verificationId,
+//       };
+//     } else {
+//       console.error('Token generation failed:', responseData);
+//       return {
+//         success: false,
+//         message: 'Token generation failed',
+//         details: responseData,
+//       };
+//     }
+//   } catch (error) {
+//     console.error('Error generating PAN verification token:', error.message);
+//     return {
+//       success: false,
+//       message: 'Internal Server Error',
+//       error: error.message,
+//     };
+//   }
+// };
 
 // const uploadPan = configMulter('playerPanImage/', [{
 //   name: 'front_image',
