@@ -24,81 +24,20 @@ const axios = require('axios');
 const FormData = require('form-data');
 
 
-// exports.userLogin = async function (req, res) {
-//   try {
-//     const {
-//       email,
-//       first_name,
-//       device_type,
-//       device_token,
-//       mobile
-//     } = req.body;
-
-//     // Check if the mobile number already exists in the Players table
-//     let existingUser = await Players.findOne({
-//       mobile
-//     });
-
-//     if (existingUser) {
-//       // If the user exists, return the existing data without updating
-//       return res.status(200).json({
-//         success: true,
-//         data: existingUser,
-//         message: 'User already exists. Returning existing data.',
-//       });
-//     } else {
-//       // If the user doesn't exist, create a new user entry
-
-//       // Generate a random alpha-numeric code (e.g., a referral code)
-//       const referral_code = crypto.randomBytes(6).toString('hex').toUpperCase();
-
-//       // console.log('Generated Referral Code:', referral_code);
-      
-//       const fcm_token = jwt.sign({
-//         mobile
-//       }, process.env.JWT_SECRET, {
-//         expiresIn: '1h'
-//       }); // Using the secret key from .env
-
-//       // Create a Players model instance
-//       const player = new Players({
-//         email,
-//         first_name,
-//         device_type,
-//         device_token,
-//         mobile,
-//         referral_code: referral_code,
-//         fcm_token: fcm_token
-//       });
-
-//       // Save the player instance to the database
-//       const data = await player.save();
-
-//       // console.log('Data after creation:', data);
-
-//       return res.status(200).json({
-//         success: true,
-//         data,
-//         fcm_token: fcm_token,
-//         referral_code: referral_code,
-//         message: 'New user created with referral code.',
-//       });
-//     }
-//   } catch (error) {
-//     console.error('Error in userLogin:', error);
-//     res.status(500).json({
-//       success: false,
-//       error: error.message,
-//     });
-//   }
-// };
-
 exports.userLogin = async function (req, res) {
   try {
-    const { email, first_name, device_type, device_token, mobile } = req.body;
+    const {
+      email,
+      first_name,
+      device_type,
+      device_token,
+      mobile
+    } = req.body;
 
     // Check if the mobile number already exists in the Players table
-    let existingUser = await Players.findOne({ mobile });
+    let existingUser = await Players.findOne({
+      mobile
+    });
 
     if (existingUser) {
       // If the user exists, return the existing data without updating
@@ -111,11 +50,14 @@ exports.userLogin = async function (req, res) {
       // If the user doesn't exist, create a new user entry
 
       // Generate a random alpha-numeric code (e.g., a referral code)
-      const referral_code = generateReferralCode();
 
-      // const fcm_token = jwt.sign({ mobile }, process.env.JWT_SECRET, {
-      //   expiresIn: '1h',
-      // }); // Using the secret key from .env
+      const referral_code = generateReferralCode();
+      
+      const fcm_token = jwt.sign({
+        mobile
+      }, process.env.JWT_SECRET, {
+        expiresIn: '1h'
+      }); // Using the secret key from .env
 
       // Create a Players model instance
       const player = new Players({
@@ -124,18 +66,20 @@ exports.userLogin = async function (req, res) {
         device_type,
         device_token,
         mobile,
-        referral_code,
-        fcm_token,
+        referral_code: referral_code,
+        fcm_token: fcm_token
       });
 
       // Save the player instance to the database
       const data = await player.save();
 
+      // console.log('Data after creation:', data);
+
       return res.status(200).json({
         success: true,
         data,
-        fcm_token,
-        referral_code,
+        fcm_token: fcm_token,
+        referral_code: referral_code,
         message: 'New user created with referral code.',
       });
     }
@@ -147,6 +91,61 @@ exports.userLogin = async function (req, res) {
     });
   }
 };
+
+// exports.userLogin = async function (req, res) {
+//   try {
+//     const { email, first_name, device_type, device_token, mobile } = req.body;
+
+//     // Check if the mobile number already exists in the Players table
+//     let existingUser = await Players.findOne({ mobile });
+
+//     if (existingUser) {
+//       // If the user exists, return the existing data without updating
+//       return res.status(200).json({
+//         success: true,
+//         data: existingUser,
+//         message: 'User already exists. Returning existing data.',
+//       });
+//     } else {
+//       // If the user doesn't exist, create a new user entry
+
+//       // Generate a random alpha-numeric code (e.g., a referral code)
+//       const referral_code = generateReferralCode();
+
+//       // const fcm_token = jwt.sign({ mobile }, process.env.JWT_SECRET, {
+//       //   expiresIn: '1h',
+//       // }); // Using the secret key from .env
+
+//       // Create a Players model instance
+//       const player = new Players({
+//         email,
+//         first_name,
+//         device_type,
+//         device_token,
+//         mobile,
+//         referral_code,
+//         fcm_token,
+//       });
+
+//       // Save the player instance to the database
+//       const data = await player.save();
+
+//       return res.status(200).json({
+//         success: true,
+//         data,
+//         fcm_token,
+//         referral_code,
+//         message: 'New user created with referral code.',
+//       });
+//     }
+//   } catch (error) {
+//     console.error('Error in userLogin:', error);
+//     res.status(500).json({
+//       success: false,
+//       error: error.message,
+//     });
+//   }
+// };
 
 function generateReferralCode() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
