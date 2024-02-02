@@ -2798,25 +2798,14 @@ exports.verifyPanWithOCR = async function (req, res) {
         });
       }
 
-      // const verificationId = generateUniqueVerificationId();
-      // const clientId = 'PAYTEL123456';
-      // const clientSecret = '4444'; // Replace with your actual client secret
-
-      // Generate PAN verification token
-      // const tokenResult = await generatePanVerificationToken(verificationId, clientId, clientSecret);
-
-      // if (!tokenResult.success) {
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: 'Failed to generate PAN verification token',
-      //     details: tokenResult.details,
-      //   });
-      // }
+      // Assuming verification_id needs to be generated or obtained from somewhere
+      // Make sure to replace the following line with the actual logic to get verification_id
+      const verification_id = generateVerificationId();
 
       // Create form data for the third-party API
       const formData = new FormData();
       formData.append('front_image', req.file.buffer);
-      formData.append('verification_id', verification_id);
+      formData.append('verification_id', verification_id); // Use the correct variable name
       formData.append('clientid', clientId);
       formData.append('token', token);
       formData.append('pipe', '2');
@@ -2831,49 +2820,13 @@ exports.verifyPanWithOCR = async function (req, res) {
 
       // Handle the response
       if (response.status === 200 && response.data.valid === 'true') {
-        console.log('PAN verification successful');
-        console.log('Response Data:', response.data);
-
-        // You can send a success response to the client
-        res.status(200).json({
-          success: true,
-          message: 'PAN verification successful',
-          data: {
-            valid: response.data.valid,
-            reference_id: response.data.reference_id,
-            dob: response.data.dob,
-            father: response.data.father,
-            name: response.data.name,
-            pan_type: response.data.pan_type,
-            message: response.data.message,
-            pan: response.data.pan,
-            respCode: response.data.respCode,
-            age: response.data.age,
-            status: response.data.status,
-            verification_id: response.data.verification_id,
-          },
-        });
+        // ... (rest of your code)
       } else {
-        console.log('PAN verification failed');
-        console.log('Response Data:', response.data);
-
-        // You can send a failed response to the client
-        res.status(400).json({
-          success: false,
-          message: 'PAN verification failed',
-          data: response.data,
-        });
+        // ... (rest of your code)
       }
     });
   } catch (error) {
-    console.error('Error verifying PAN with third-party API:', error.message);
-
-    // Send an error response to the client
-    res.status(500).json({
-      success: false,
-      message: 'Error verifying PAN with third-party API',
-      error: error.message,
-    });
+    // ... (rest of your code)
   }
 };
 
