@@ -2555,27 +2555,23 @@ exports.playerPanImage = async function (req, res) {
 // };
 
 
-const generateVerificationId = () => {
-  const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
-  return 'v' + randomNumber;
-};
+// const generateVerificationId = () => {
+//   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
+//   return 'v' + randomNumber;
+// };
 
 
 exports.generatePanVerificationToken = async function (req, res) {
   try {
     const { clientId, clientSecret } = req.body;
+  // console.log(clientId, clientSecret);
 
-    const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
-
-    // Generate verification_id
-    const verification_id = generateVerificationId();
+  const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
 
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
       clientSecret: clientSecret,
-      verification_id: verification_id, // Include verification_id in the request
     });
-
     const responseData = response.data;
 
     console.log(responseData);
@@ -2585,7 +2581,6 @@ exports.generatePanVerificationToken = async function (req, res) {
         message: responseData.Message,
         token: responseData.Token,
         expiry: responseData.Expiry,
-        verification_id: verification_id, // Include verification_id in the response
       });
     } else {
       console.error('Token generation failed:', responseData);
@@ -2604,7 +2599,6 @@ exports.generatePanVerificationToken = async function (req, res) {
     });
   }
 };
-
 
 // const generateUniqueVerificationId = () => {
 //   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
@@ -2769,31 +2763,34 @@ exports.generatePanVerificationToken = async function (req, res) {
 //   }
 // };
 
-const verifyPanImage = multer({
-  storage: multer.memoryStorage(),
-}).single('front_image');
+// const verifyPanImage = multer({
+//   storage: multer.memoryStorage(),
+// }).single('front_image');
 
 exports.verifyPanWithOCR = async function (req, res) {
   try {
+    const clientId = 'PAYTEL123456'; // Replace 'yourClientId' with the actual value
+    // const clientSecret = '4444'; // Replace 'yourClientSecret' with the actual value
 
-    const clientId = 'PLAYTEL123456'; // Replace 'yourClientId' with the actual value
+    const verifyPanImage = multer({
+      storage: multer.memoryStorage(),
+    }).single('front_image');
 
     verifyPanImage(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
         return res.status(500).json({
           success: false,
           message: 'Multer error',
-          error: err
+          error: err,
         });
       } else if (err) {
         return res.status(500).json({
           success: false,
           message: 'Error uploading file',
-          error: err
+          error: err,
         });
       }
 
-     
       // Check if req.file is defined and has a buffer property
       if (!req.file || !req.file.buffer) {
         return res.status(400).json({
@@ -2802,14 +2799,23 @@ exports.verifyPanWithOCR = async function (req, res) {
         });
       }
 
-      // Assuming verification_id needs to be generated or obtained from somewhere
-      // Make sure to replace the following line with the actual logic to get verification_id
-      const verification_id = generateVerificationId();
+      // Generate PAN verification token
+      // const tokenResult = await generatePanVerificationToken(clientId, clientSecret);
+
+      if (!tokenResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to generate PAN verification token',
+          details: tokenResult.details,
+        });
+      }
+
+      const { token, verification_id } = tokenResult;
 
       // Create form data for the third-party API
       const formData = new FormData();
       formData.append('front_image', req.file.buffer);
-      formData.append('verification_id', verification_id); // Use the correct variable name
+      formData.append('verification_id', verification_id);
       formData.append('clientid', clientId);
       formData.append('token', token);
       formData.append('pipe', '2');
@@ -2825,15 +2831,29 @@ exports.verifyPanWithOCR = async function (req, res) {
       // Handle the response
       if (response.status === 200 && response.data.valid === 'true') {
         // ... (rest of your code)
+        res.status(200).json({
+          success: true,
+          message: 'PAN verification successful',
+          data: response.data,
+        });
       } else {
         // ... (rest of your code)
+        res.status(400).json({
+          success: false,
+          message: 'PAN verification failed',
+          data: response.data,
+        });
       }
     });
   } catch (error) {
-    // ... (rest of your code)
+    console.error('Error in verifyPanWithOCR:', error.message);
+    res.status(500).json({
+      success: false,
+      message: 'Error in verifyPanWithOCR',
+      error: error.message,
+    });
   }
 };
-
 
 // ************************* end of pan card upload and verification ************************* 
 
