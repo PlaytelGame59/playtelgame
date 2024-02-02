@@ -2480,10 +2480,12 @@ exports.playerPanImage = async function (req, res) {
         });
       }
 
-      // Save the details in the AdharKYC table
+      // Save the details in the pan KYC table
       const pan_image = req.files['pan_image'] ? req.files['pan_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
 
-      // const { data: { text } } = await Tesseract.recognize(pan_image, 'eng');
+      // Save the pan_image path in the players table
+      existingPlayer.pan_image = pan_image;
+      await existingPlayer.save();
 
       const panKYC = new PanKYC({
         player_id: player_id,
@@ -2553,63 +2555,105 @@ exports.playerPanImage = async function (req, res) {
 // };
 
 
+// const generateUniqueVerificationId = () => {
+//   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
+//   return 'v' + randomNumber;
+// };
+
+
+// exports.generatePanVerificationToken = async function (req, res) {
+//   try {
+//     const { clientId, clientSecret } = req.body;
+
+//     const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
+
+//     // Generate verification_id
+//     const verification_id = generateUniqueVerificationId();
+
+//     const response = await axios.post(tokenEndpoint, {
+//       clientId: clientId,
+//       clientSecret: clientSecret,
+//       verification_id: verification_id, // Include verification_id in the request
+//     });
+
+//     const responseData = response.data;
+
+//     console.log(responseData);
+//     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
+//       res.json({
+//         success: true,
+//         message: responseData.Message,
+//         token: responseData.Token,
+//         expiry: responseData.Expiry,
+//         verification_id: verification_id, // Include verification_id in the response
+//       });
+//     } else {
+//       console.error('Token generation failed:', responseData);
+//       res.status(400).json({
+//         success: false,
+//         message: 'Token generation failed',
+//         details: responseData,
+//       });
+//     }
+//   } catch (error) {
+//     console.error('Error generating PAN verification token:', error.message);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Internal Server Error',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 const generateUniqueVerificationId = () => {
-  const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
+  const randomNumber = Math.floor(Math.random() * 100) + 1;
   return 'v' + randomNumber;
 };
 
-
-exports.generatePanVerificationToken = async function (req, res) {
+const generatePanVerificationToken = async (verificationId, clientId, clientSecret) => {
   try {
-    const { clientId, clientSecret } = req.body;
-
     const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
-
-    // Generate verification_id
-    const verification_id = generateUniqueVerificationId();
-
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
       clientSecret: clientSecret,
-      verification_id: verification_id, // Include verification_id in the request
+      verification_id: verificationId,
     });
 
     const responseData = response.data;
 
-    console.log(responseData);
     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-      res.json({
+      return {
         success: true,
         message: responseData.Message,
         token: responseData.Token,
         expiry: responseData.Expiry,
-        verification_id: verification_id, // Include verification_id in the response
-      });
+        verification_id: verificationId,
+      };
     } else {
       console.error('Token generation failed:', responseData);
-      res.status(400).json({
+      return {
         success: false,
         message: 'Token generation failed',
         details: responseData,
-      });
+      };
     }
   } catch (error) {
     console.error('Error generating PAN verification token:', error.message);
-    res.status(500).json({
+    return {
       success: false,
       message: 'Internal Server Error',
       error: error.message,
-    });
+    };
   }
 };
-
 
 // const uploadPan = configMulter('playerPanImage/', [{
 //   name: 'front_image',
 //   maxCount: 1
 // }]);
 
-exports.verifyPanWithOCR = async function (req, res) {
+// exports.verifyPanWithOCR = async function (req, res) {
 //   try {
 //     uploadPan(req, res, async function (err) {
 //       if (err instanceof multer.MulterError) {
@@ -2724,50 +2768,110 @@ exports.verifyPanWithOCR = async function (req, res) {
 //     });
 //   }
 // };
-try {
-  const frontImageFilePath = 'D:/This PC/Downloads/WhatsApp Image 2024-01-02 at 3.02.46 PM.jpeg';
 
-  // Create form data
-  const formData = new FormData();
-  formData.append('front_image', fs.createReadStream(frontImageFilePath));
-  formData.append('verification_id', 'v15');
-  formData.append('clientid', 'PAYTEL123456');
-  formData.append('token', 'your_jwt_token'); // Replace with your actual JWT token
-  formData.append('pipe', '2');
+const verifyPanImage = configMulter('', [{
+  name: 'front_image',
+  maxCount: 1
+}]);
 
-  // Make the HTTP POST request
-  const response = await axios.post('https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr', formData, {
-    headers: {
-      ...formData.getHeaders(),
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+exports.verifyPanWithOCR = async function (req, res) {
+  try {
+    verifyPanImage(req, res, async function (err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(500).json({
+          success: false,
+          message: 'Multer error',
+          error: err
+        });
+      } else if (err) {
+        return res.status(500).json({
+          success: false,
+          message: 'Error uploading file',
+          error: err
+        });
+      }
 
-  // Handle the response
-  if (response.status === 200 && response.data.valid === 'true') {
-    console.log('PAN verification successful');
-    console.log('Response Data:', response.data);
+      const verificationId = 'v15'; // Replace with your logic to generate a unique verification_id
+      const clientId = 'PAYTEL123456';
+      const clientSecret = '4444'; // Replace with your actual client secret
 
-    // Access specific fields
-    console.log('Reference ID:', response.data.reference_id);
-    console.log('Date of Birth:', response.data.dob);
-    console.log('Father:', response.data.father);
-    console.log('Name:', response.data.name);
-    console.log('PAN Type:', response.data.pan_type);
-    console.log('Message:', response.data.message);
-    console.log('PAN:', response.data.pan);
-    console.log('Response Code:', response.data.respCode);
-    console.log('Age:', response.data.age);
-    console.log('Status:', response.data.status);
-    console.log('Verification ID:', response.data.verification_id);
-  } else {
-    console.log('PAN verification failed');
-    console.log('Response Data:', response.data);
+      // Generate PAN verification token
+      const tokenResult = await generatePanVerificationToken(verificationId, clientId, clientSecret);
+
+      if (!tokenResult.success) {
+        return res.status(400).json({
+          success: false,
+          message: 'Failed to generate PAN verification token',
+          details: tokenResult.details,
+        });
+      }
+
+      // Create form data for the third-party API
+      const formData = new FormData();
+      formData.append('front_image', req.file.buffer);
+      formData.append('verification_id', verificationId);
+      formData.append('clientid', clientId);
+      formData.append('token', tokenResult.token);
+      formData.append('pipe', '2');
+
+      // Make the HTTP POST request to the third-party API
+      const response = await axios.post('https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr', formData, {
+        headers: {
+          ...formData.getHeaders(),
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Handle the response
+      if (response.status === 200 && response.data.valid === 'true') {
+        console.log('PAN verification successful');
+        console.log('Response Data:', response.data);
+
+        // You can send a success response to the client
+        res.status(200).json({
+          success: true,
+          message: 'PAN verification successful',
+          data: {
+            valid: response.data.valid,
+            reference_id: response.data.reference_id,
+            dob: response.data.dob,
+            father: response.data.father,
+            name: response.data.name,
+            pan_type: response.data.pan_type,
+            message: response.data.message,
+            pan: response.data.pan,
+            respCode: response.data.respCode,
+            age: response.data.age,
+            status: response.data.status,
+            verification_id: response.data.verification_id,
+            token: tokenResult.token, // Include the token in the response
+          },
+        });
+      } else {
+        console.log('PAN verification failed');
+        console.log('Response Data:', response.data);
+
+        // You can send a failed response to the client
+        res.status(400).json({
+          success: false,
+          message: 'PAN verification failed',
+          data: response.data,
+        });
+      }
+    });
+  } catch (error) {
+    console.error('Error verifying PAN with third-party API:', error.message);
+
+    // Send an error response to the client
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying PAN with third-party API',
+      error: error.message,
+    });
   }
-} catch (error) {
-  console.error('Error verifying PAN with Paytel:', error.message);
-}
-}
+};
+
+
 
 // ************************* end of pan card upload and verification ************************* 
 

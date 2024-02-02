@@ -86,6 +86,10 @@ const PlayerSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    pan_image: {
+        type: String,
+        default: ''
+    },
     is_pan_kyc: {
         type: Boolean,
         default: false
