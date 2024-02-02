@@ -2514,91 +2514,6 @@ exports.playerPanImage = async function (req, res) {
 };
 
 // Function to obtain an authentication token
-// exports.generatePanVerificationToken = async function (req, res) {
-  
-//   try {
-//     const { clientId, clientSecret } = req.body;
-//   // console.log(clientId, clientSecret);
-
-//   const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
-
-//     const response = await axios.post(tokenEndpoint, {
-//       clientId: clientId,
-//       clientSecret: clientSecret,
-//     });
-//     const responseData = response.data;
-
-//     console.log(responseData);
-//     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-//       res.json({
-//         success: true,
-//         message: responseData.Message,
-//         token: responseData.Token,
-//         expiry: responseData.Expiry,
-//       });
-//     } else {
-//       console.error('Token generation failed:', responseData);
-//       res.status(400).json({
-//         success: false,
-//         message: 'Token generation failed',
-//         details: responseData,
-//       });
-//     }
-//   } catch (error) {
-//     console.error('Error generating PAN verification token:', error.message);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal Server Error',
-//       error: error.message,
-//     });
-//   }
-// };
-
-
-// const generateVerificationId = () => {
-//   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
-//   return 'v' + randomNumber;
-// };
-
-
-// exports.generatePanVerificationToken = async function (req, res) {
-//   try {
-//     const { clientId, clientSecret } = req.body;
-//   // console.log(clientId, clientSecret);
-
-//   const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/authorize/panocr';
-
-//     const response = await axios.post(tokenEndpoint, {
-//       clientId: clientId,
-//       clientSecret: clientSecret,
-//     });
-//     const responseData = response.data;
-
-//     console.log(responseData);
-//     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-//       res.json({
-//         success: true,
-//         message: responseData.Message,
-//         token: responseData.Token,
-//         expiry: responseData.Expiry,
-//       });
-//     } else {
-//       console.error('Token generation failed:', responseData);
-//       res.status(400).json({
-//         success: false,
-//         message: 'Token generation failed',
-//         details: responseData,
-//       });
-//     }
-//   } catch (error) {
-//     console.error('Error generating PAN verification token:', error.message);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal Server Error',
-//       error: error.message,
-//     });
-//   }
-// };
 
 const generateVerificationId = () => {
   const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
@@ -2644,131 +2559,6 @@ const generatePanVerificationToken = async (clientId, clientSecret) => {
     };
   }
 };
-
-// const uploadPan = configMulter('playerPanImage/', [{
-//   name: 'front_image',
-//   maxCount: 1
-// }]);
-
-// exports.verifyPanWithOCR = async function (req, res) {
-//   try {
-//     uploadPan(req, res, async function (err) {
-//       if (err instanceof multer.MulterError) {
-//         return res.status(500).json({
-//           success: false,
-//           message: 'Multer error',
-//           error: err
-//         });
-//       } else if (err) {
-//         return res.status(500).json({
-//           success: false,
-//           message: 'Error uploading file',
-//           error: err
-//         });
-//       }
-
-//       const {
-//         verification_id,
-//         clientid,
-//         token,
-//         pipe
-//       } = req.body;
-
-//       // Check if necessary parameters are provided
-//       if (!verification_id || !clientid || !token || !pipe) {
-//         return res.status(400).json({
-//           success: false,
-//           message: 'Verification ID, Client ID, Token, and Pipe are required.'
-//         });
-//       }
-
-//       // Verify PAN using OCR
-//       const front_image = req.files['front_image'] ? req.files['front_image'][0].path.replace(/^.*playerPanImage[\\/]/, 'playerPanImage/') : '';
-
-//       const panVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr';
-
-//       const formData = new FormData();
-//       // Correct the field name here
-//       formData.append('front_image', fs.createReadStream(front_image));
-//       formData.append('verification_id', verification_id);
-//       formData.append('clientid', clientid);
-//       formData.append('token', token);
-//       formData.append('pipe', pipe);
-
-//       try {
-//         const response = await axios.post(panVerifyEndpoint, formData, {
-//           headers: {
-//             ...formData.getHeaders(),
-//           },
-//         });
-
-//         const responseData = response.data;
-
-//         if (responseData.status === 'Success' && responseData.respCode === '00') {
-//           const {
-//             valid,
-//             reference_id,
-//             dob,
-//             father,
-//             name,
-//             pan_type,
-//             message,
-//             pan,
-//             respCode,
-//             age,
-//             status,
-//             verification_id,
-//           } = responseData;
-
-//           // Process the successful response as needed
-//           res.status(200).json({
-//             success: true,
-//             message: 'PAN verification successful.',
-//             data: {
-//               valid,
-//               reference_id,
-//               dob,
-//               father,
-//               name,
-//               pan_type,
-//               message,
-//               pan,
-//               respCode,
-//               age,
-//               status,
-//               verification_id,
-//             },
-//           });
-//         } else {
-//           // Handle the case where PAN verification fails
-//           res.status(400).json({
-//             success: false,
-//             message: 'PAN verification failed',
-//             details: responseData,
-//           });
-//         }
-//       } catch (error) {
-//         // Handle API request errors
-//         res.status(500).json({
-//           success: false,
-//           message: 'Internal Server Error',
-//           error: error.message,
-//         });
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error in PAN verification:', error.message);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal Server Error',
-//       error: error.message,
-//     });
-//   }
-// };
-
-// const verifyPanImage = multer({
-//   storage: multer.memoryStorage(),
-// }).single('front_image');
 
 
 exports.verifyPanWithOCR = async function (req, res) {
@@ -2867,258 +2657,145 @@ exports.verifyPanWithOCR = async function (req, res) {
 
 // ************************* start of Aadhar card upload and verification ************************* 
 
+const generateAadharVerificationId = () => {
+  const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
+  return 'v' + randomNumber;
+};
 
-exports.generateAdharVerificationToken = async function (req, res) {
-  
+const generateAadharVerificationToken = async (clientId, clientSecret) => {
   try {
-    const { clientId, clientSecret } = req.body;
-  // console.log(clientId, clientSecret);
+    const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr/authorize';
 
-  const tokenEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr/authorize'
-  ;
+    // Generate verification_id
+    const verification_id = generateAadharVerificationId();
 
     const response = await axios.post(tokenEndpoint, {
       clientId: clientId,
       clientSecret: clientSecret,
+      verification_id: verification_id,
     });
+
     const responseData = response.data;
 
-    console.log(responseData);
     if (responseData.Status === 'SUCCESS' && responseData.Subcode === '200') {
-      res.json({
+      return {
         success: true,
-        message: responseData.Message,
         token: responseData.Token,
         expiry: responseData.Expiry,
-      });
+        verification_id: verification_id,
+      };
     } else {
       console.error('Token generation failed:', responseData);
-      res.status(400).json({
+      return {
         success: false,
         message: 'Token generation failed',
         details: responseData,
-      });
+      };
     }
   } catch (error) {
-    console.error('Error generating PAN verification token:', error.message);
-    res.status(500).json({
+    console.error('Error generating Aadhaar verification token:', error.message);
+    return {
       success: false,
       message: 'Internal Server Error',
       error: error.message,
-    });
+    };
   }
 };
 
-// const uploadAadharImage = configMulter('playerAadharImage/', [
-//   { name: 'aadhar_front_image', maxCount: 1 },
-//   { name: 'aadhar_back_image', maxCount: 1 }
-// ]);
-
-// exports.verifyAadharWithOCR = async function (req, res) {
-//   try {
-//     uploadAadharImage(req, res, async function (err) {
-//       if (err instanceof multer.MulterError) {
-//         return res.status(500).json({
-//           success: false,
-//           message: 'Multer error',
-//           error: {
-//             name: err.name,
-//             message: err.message,
-//             code: err.code,
-//             field: err.field,
-//             storageErrors: err.storageErrors
-//           }
-//         });
-//       } else if (err) {
-//         return res.status(500).json({
-//           success: false,
-//           message: 'Error uploading file',
-//           error: err
-//         });
-//       }
-
-//       const { verification_id, clientid, token, pipe } = req.body;
-
-//       // Check if necessary parameters are provided
-//       if (!verification_id || !clientid || !token || !pipe) {
-//         return res.status(400).json({
-//           success: false,
-//           message: 'Verification ID, Client ID, Token, and Pipe are required.'
-//         });
-//       }
-
-//       // Verify Aadhaar using OCR
-//       const aadhar_front_image = req.files['aadhar_front_image'] ? req.files['aadhar_front_image'][0].path : '';
-//       const aadhar_back_image = req.files['aadhar_back_image'] ? req.files['aadhar_back_image'][0].path : '';
-
-//       if (!fs.existsSync(aadhar_front_image) || !fs.existsSync(aadhar_back_image)) {
-//         return res.status(400).json({
-//           success: false,
-//           message: 'Aadhaar image file not found.'
-//         });
-//       }
-
-//       const aadharVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr';
-
-//       const formData = new FormData();
-//       formData.append('aadhar_front_image', fs.createReadStream(aadhar_front_image));
-//       formData.append('aadhar_back_image', fs.createReadStream(aadhar_back_image));
-//       formData.append('verification_id', verification_id);
-//       formData.append('clientid', clientid);
-//       formData.append('token', token);
-//       formData.append('pipe', pipe);
-
-//       try {
-//         const response = await axios.post(aadharVerifyEndpoint, formData, {
-//           headers: { ...formData.getHeaders() },
-//         });
-
-//         const responseData = response.data;
-
-//         if (responseData.status === 'VALID' && responseData.respCode === '00') {
-//           const {
-//             pincode, address, gender, reference_id, father,
-//             message, adhaar_no, year_of_birth, verification_id,
-//             valid, name, state, respCode, status
-//           } = responseData;
-
-//           // Process the successful response as needed
-//           res.status(200).json({
-//             success: true,
-//             message: 'Aadhaar verification successful.',
-//             data: {
-//               pincode, address, gender, reference_id, father,
-//               message, adhaar_no, year_of_birth, verification_id,
-//               valid, name, state, respCode, status
-//             },
-//           });
-//         } else {
-//           // Handle the case where Aadhaar verification fails
-//           res.status(400).json({
-//             success: false,
-//             message: 'Aadhaar verification failed',
-//             details: responseData,
-//           });
-//         }
-//       } catch (error) {
-//         // Handle API request errors
-//         res.status(500).json({
-//           success: false,
-//           message: 'Internal Server Error',
-//           error: error.message,
-//         });
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error in Aadhaar verification:', error.message);
-//     res.status(500).json({
-//       success: false,
-//       message: 'Internal Server Error',
-//       error: error.message,
-//     });
-//   }
-// };
-const uploadAadharImage = configMulter('playerAadharImage/', [
-  { name: 'aadhar_front_image', maxCount: 1 },
-  { name: 'aadhar_back_image', maxCount: 1 }
-]);
-
 exports.verifyAadharWithOCR = async function (req, res) {
   try {
-    uploadAadharImage(req, res, async function (err) {
+    const clientId = 'PAYTEL123456';
+    const clientSecret = '3333';
+
+    const verifyAadharImages = multer({
+      storage: multer.memoryStorage(),
+    }).fields([{ name: 'front_image', maxCount: 1 }, { name: 'back_image', maxCount: 1 }]);
+
+    verifyAadharImages(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
         return res.status(500).json({
           success: false,
           message: 'Multer error',
-          error: {
-            name: err.name,
-            message: err.message,
-            code: err.code,
-            field: err.field,
-            storageErrors: err.storageErrors
-          }
+          error: err,
         });
       } else if (err) {
         return res.status(500).json({
           success: false,
-          message: 'Error uploading file',
-          error: err
+          message: 'Error uploading files',
+          error: err,
         });
       }
 
-      const { verification_id, clientid, token, pipe } = req.body;
-
-      // Check if necessary parameters are provided
-      if (!verification_id || !clientid || !token || !pipe) {
+      // Check if both req.files are defined and have a buffer property
+      if (!req.files || !req.files['front_image'] || !req.files['back_image'] ||
+          !req.files['front_image'][0].buffer || !req.files['back_image'][0].buffer) {
         return res.status(400).json({
           success: false,
-          message: 'Verification ID, Client ID, Token, and Pipe are required.'
+          message: 'Invalid or missing files in the request.',
         });
       }
 
-      // Verify Aadhaar using OCR
-      const aadhar_front_image = req.files['aadhar_front_image'] ? req.files['aadhar_front_image'][0].path : '';
-      const aadhar_back_image = req.files['aadhar_back_image'] ? req.files['aadhar_back_image'][0].path : '';
+      // Generate Aadhaar verification token
+      const tokenResult = await generateAadharVerificationToken(clientId, clientSecret);
 
-      if (!fs.existsSync(aadhar_front_image) || !fs.existsSync(aadhar_back_image)) {
+      if (!tokenResult.success) {
         return res.status(400).json({
           success: false,
-          message: 'Aadhaar image file not found.'
+          message: 'Failed to generate Aadhaar verification token',
+          details: tokenResult.details,
         });
       }
 
-      const aadharVerifyEndpoint = 'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr';
+      const { token, verification_id } = tokenResult;
 
+      // Create form data for the third-party API
       const formData = new FormData();
-      formData.append('aadhar_front_image', fs.createReadStream(aadhar_front_image));
-      formData.append('aadhar_back_image', fs.createReadStream(aadhar_back_image));
+      formData.append('front_image', req.files['front_image'][0].buffer, { filename: 'front_image.jpg' });
+      formData.append('back_image', req.files['back_image'][0].buffer, { filename: 'back_image.jpg' });
       formData.append('verification_id', verification_id);
-      formData.append('clientid', clientid);
+      formData.append('clientid', clientId);
       formData.append('token', token);
-      formData.append('pipe', pipe);
+      formData.append('pipe', '2');
 
-      try {
-        const response = await axios.post(aadharVerifyEndpoint, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', ...formData.getHeaders() },
-        });
-
-        const responseData = response.data;
-
-        if (responseData.status === 'VALID' && responseData.respCode === '00') {
-          // Process the successful response as needed
-          res.status(200).json({
-            success: true,
-            message: 'Aadhaar verification successful.',
-            data: responseData,
-          });
-        } else {
-          // Handle the case where Aadhaar verification fails
-          res.status(400).json({
-            success: false,
-            message: 'Aadhaar verification failed',
-            details: responseData,
-          });
+      // Make the HTTP POST request to the third-party API
+      const response = await axios.post(
+        'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/adhaarocr',
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+          },
         }
-      } catch (error) {
-        // Handle API request errors
-        res.status(500).json({
+      );
+
+      // Handle the response
+      if (response.status === 200 && response.data.valid === 'true') {
+        // ... (rest of your code)
+        res.status(200).json({
+          success: true,
+          message: 'Aadhaar verification successful',
+          data: response.data,
+        });
+      } else {
+        // ... (rest of your code)
+        res.status(400).json({
           success: false,
-          message: 'Internal Server Error',
-          error: error.message,
+          message: 'Aadhaar verification failed',
+          data: response.data,
         });
       }
     });
   } catch (error) {
-    console.error('Error in Aadhaar verification:', error.message);
+    console.error('Error in verifyAadharWithOCR:', error.message);
     res.status(500).json({
       success: false,
-      message: 'Internal Server Error',
+      message: 'Error in verifyAadharWithOCR',
       error: error.message,
     });
   }
 };
 
-// ************************* start of Aadhar card upload and verification ************************* 
+// ************************* End of Aadhar card upload and verification ************************* 
 
 // send notification
 
