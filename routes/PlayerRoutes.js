@@ -31,6 +31,7 @@ router.get('/get-leaderboard', playerController.getleaderboard);
 router.post('/apply-referral-code', playerController.applyReferralCode);
 router.get('/used-referral-code-list', playerController.getUsedReferralCodeList);
 router.post('/get-all-notification', playerController.getNotificationList);
+router.post('/pan-upload', playerController.playerPanImage);
 router.post('/get-pan-token', playerController.generatePanVerificationToken);
 router.post('/verify-pan-ocr', playerController.verifyPanWithOCR);
 router.post('/get-adhaar-token', playerController.generateAdharVerificationToken);
