@@ -2770,6 +2770,7 @@ const generatePanVerificationToken = async (clientId, clientSecret) => {
 //   storage: multer.memoryStorage(),
 // }).single('front_image');
 
+
 exports.verifyPanWithOCR = async function (req, res) {
   try {
     const clientId = 'PAYTEL123456'; // Replace 'yourClientId' with the actual value
@@ -2817,7 +2818,8 @@ exports.verifyPanWithOCR = async function (req, res) {
 
       // Create form data for the third-party API
       const formData = new FormData();
-      formData.append('front_image', req.file.buffer);
+      // formData.append('front_image', req.file.buffer);
+      formData.append('front_image', file);
       formData.append('verification_id', verification_id);
       formData.append('clientid', clientId);
       formData.append('token', token);
