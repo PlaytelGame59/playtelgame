@@ -2775,6 +2775,9 @@ const verifyPanImage = multer({
 
 exports.verifyPanWithOCR = async function (req, res) {
   try {
+
+    const clientId = 'PLAYTEL123456'; // Replace 'yourClientId' with the actual value
+
     verifyPanImage(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
         return res.status(500).json({
@@ -2790,6 +2793,7 @@ exports.verifyPanWithOCR = async function (req, res) {
         });
       }
 
+     
       // Check if req.file is defined and has a buffer property
       if (!req.file || !req.file.buffer) {
         return res.status(400).json({
