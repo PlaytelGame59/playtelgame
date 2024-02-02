@@ -2816,7 +2816,7 @@ exports.verifyPanWithOCR = async function (req, res) {
       // Create form data for the third-party API
       const formData = new FormData();
       formData.append('front_image', req.file.buffer);
-      formData.append('verification_id', verificationId);
+      formData.append('verification_id', verification_id);
       formData.append('clientid', clientId);
       formData.append('token', token);
       formData.append('pipe', '2');
