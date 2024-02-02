@@ -2607,7 +2607,7 @@ exports.playerPanImage = async function (req, res) {
 
 
 const generateUniqueVerificationId = () => {
-  const randomNumber = Math.floor(Math.random() * 100) + 1;
+  const randomNumber = Math.floor(Math.random() * 100) + 1; // Generate a random number between 1 and 100
   return 'v' + randomNumber;
 };
 
@@ -2769,10 +2769,9 @@ const generatePanVerificationToken = async (verificationId, clientId, clientSecr
 //   }
 // };
 
-const verifyPanImage = configMulter('', [{
-  name: 'front_image',
-  maxCount: 1
-}]);
+const verifyPanImage = multer({
+  storage: multer.memoryStorage(),
+}).single('front_image');
 
 exports.verifyPanWithOCR = async function (req, res) {
   try {
@@ -2791,7 +2790,15 @@ exports.verifyPanWithOCR = async function (req, res) {
         });
       }
 
-      const verificationId = 'v15'; // Replace with your logic to generate a unique verification_id
+      // Check if req.file is defined and has a buffer property
+      if (!req.file || !req.file.buffer) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid or missing file in the request.',
+        });
+      }
+
+      const verificationId = generateUniqueVerificationId();
       const clientId = 'PAYTEL123456';
       const clientSecret = '4444'; // Replace with your actual client secret
 
@@ -2870,7 +2877,6 @@ exports.verifyPanWithOCR = async function (req, res) {
     });
   }
 };
-
 
 
 // ************************* end of pan card upload and verification ************************* 
