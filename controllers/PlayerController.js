@@ -2798,12 +2798,12 @@ exports.verifyPanWithOCR = async function (req, res) {
         });
       }
 
-      const verificationId = generateUniqueVerificationId();
-      const clientId = 'PAYTEL123456';
-      const clientSecret = '4444'; // Replace with your actual client secret
+      // const verificationId = generateUniqueVerificationId();
+      // const clientId = 'PAYTEL123456';
+      // const clientSecret = '4444'; // Replace with your actual client secret
 
       // Generate PAN verification token
-      const tokenResult = await generatePanVerificationToken(verificationId, clientId, clientSecret);
+      // const tokenResult = await generatePanVerificationToken(verificationId, clientId, clientSecret);
 
       if (!tokenResult.success) {
         return res.status(400).json({
@@ -2818,7 +2818,7 @@ exports.verifyPanWithOCR = async function (req, res) {
       formData.append('front_image', req.file.buffer);
       formData.append('verification_id', verificationId);
       formData.append('clientid', clientId);
-      formData.append('token', tokenResult.token);
+      formData.append('token', token);
       formData.append('pipe', '2');
 
       // Make the HTTP POST request to the third-party API
