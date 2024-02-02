@@ -2773,8 +2773,8 @@ const generatePanVerificationToken = async (clientId, clientSecret) => {
 
 exports.verifyPanWithOCR = async function (req, res) {
   try {
-    const clientId = 'PAYTEL123456'; // Replace 'yourClientId' with the actual value
-    const clientSecret = '4444'; // Replace 'yourClientSecret' with the actual value
+    const clientId = 'PAYTEL123456';
+    const clientSecret = '4444';
 
     const verifyPanImage = multer({
       storage: multer.memoryStorage(),
@@ -2818,20 +2818,23 @@ exports.verifyPanWithOCR = async function (req, res) {
 
       // Create form data for the third-party API
       const formData = new FormData();
-      // formData.append('front_image', req.file.buffer);
-      formData.append('front_image', file);
+      formData.append('front_image', req.file.buffer, { filename: 'front_image.jpg' }); // Specify a filename
       formData.append('verification_id', verification_id);
       formData.append('clientid', clientId);
       formData.append('token', token);
       formData.append('pipe', '2');
 
       // Make the HTTP POST request to the third-party API
-      const response = await axios.post('https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr', formData, {
-        headers: {
-          ...formData.getHeaders(),
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(
+        'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr',
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+            // No need to set 'Content-Type' separately; 'form-data' library handles it
+          },
+        }
+      );
 
       // Handle the response
       if (response.status === 200 && response.data.valid === 'true') {
@@ -2859,6 +2862,7 @@ exports.verifyPanWithOCR = async function (req, res) {
     });
   }
 };
+
 // ************************* end of pan card upload and verification ************************* 
 
 // ************************* start of Aadhar card upload and verification ************************* 
