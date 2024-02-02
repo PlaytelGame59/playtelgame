@@ -2805,13 +2805,13 @@ exports.verifyPanWithOCR = async function (req, res) {
       // Generate PAN verification token
       // const tokenResult = await generatePanVerificationToken(verificationId, clientId, clientSecret);
 
-      if (!tokenResult.success) {
-        return res.status(400).json({
-          success: false,
-          message: 'Failed to generate PAN verification token',
-          details: tokenResult.details,
-        });
-      }
+      // if (!tokenResult.success) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: 'Failed to generate PAN verification token',
+      //     details: tokenResult.details,
+      //   });
+      // }
 
       // Create form data for the third-party API
       const formData = new FormData();
@@ -2851,7 +2851,6 @@ exports.verifyPanWithOCR = async function (req, res) {
             age: response.data.age,
             status: response.data.status,
             verification_id: response.data.verification_id,
-            token: tokenResult.token, // Include the token in the response
           },
         });
       } else {
