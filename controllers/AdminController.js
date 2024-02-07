@@ -760,19 +760,21 @@ exports.addWithdrawRequestList = async function (req, res) {
 
 exports.getWithdrawRequestList = async function (req, res) {
   try {
-    // Fetch all tournament from the database
+    // Fetch all WithdrawDetails from the database
     const withdrawDetails = await WithdrawDetails.find();
 
-    // Respond with the list of tournament
+    // Respond with the list of WithdrawDetails
     res.status(200).json({
-      msg: 'successfull',
-      withdrawDetails
+      success: true,
+      message: 'Successfully fetched withdrawal requests',
+      data: withdrawDetails
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({
+      success: false,
       message: 'Internal Server Error',
-      error
+      error: error.message
     });
   }
 }
