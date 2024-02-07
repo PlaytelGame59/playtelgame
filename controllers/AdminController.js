@@ -760,27 +760,22 @@ exports.addWithdrawRequestList = async function (req, res) {
 
 exports.getWithdrawRequestList = async function (req, res) {
   try {
-    // Fetch withdrawal requests and populate player details
-    const withdrawalRequests = await WithdrawDetails.find()
-      // .populate('player_id', 'playerId playerName email') // Add fields you want to retrieve for the player
-      // .exec();
+    // Fetch all tournament from the database
+    const withdrawDetails = await WithdrawDetails.find();
 
-    // Your logic to filter, process, or modify the withdrawal requests goes here
-
-    // Respond with the list of withdrawal requests and player details
+    // Respond with the list of tournament
     res.status(200).json({
-      success: true,
-      withdrawalRequests,
+      msg: 'successfull',
+      withdrawDetails
     });
   } catch (error) {
-    console.error('Error fetching and processing withdrawal requests:', error);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to fetch withdrawal requests.',
-      error: error.message,
+    console.error(error);
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error
     });
   }
-};
+}
 
 exports.getapproveWithdraw = async function (req, res) {
   try {
