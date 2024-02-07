@@ -2737,7 +2737,7 @@ exports.verifyPanWithOCR = async function (req, res) {
         // Send response
         res.status(200).json({
           success: true,
-          message: 'PAN verification successful',
+          message: 'PAN verification successful and is_pan_kyc field updated',
           data: response.data,
         });
       } else {
