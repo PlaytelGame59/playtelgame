@@ -2560,8 +2560,112 @@ const generatePanVerificationToken = async (clientId, clientSecret) => {
 };
 
 
+// exports.verifyPanWithOCR = async function (req, res) {
+//   try {
+//     const clientId = 'PAYTEL123456';
+//     const clientSecret = '4444';
+
+//     const verifyPanImage = multer({
+//       storage: multer.memoryStorage(),
+//     }).single('front_image');
+
+//     verifyPanImage(req, res, async function (err) {
+//       if (err instanceof multer.MulterError) {
+//         return res.status(500).json({
+//           success: false,
+//           message: 'Multer error',
+//           error: err,
+//         });
+//       } else if (err) {
+//         return res.status(500).json({
+//           success: false,
+//           message: 'Error uploading file',
+//           error: err,
+//         });
+//       }
+
+//       // Check if req.file is defined and has a buffer property
+//       if (!req.file || !req.file.buffer) {
+//         return res.status(400).json({
+//           success: false,
+//           message: 'Invalid or missing file in the request.',
+//         });
+//       }
+
+//       // Generate PAN verification token
+//       const tokenResult = await generatePanVerificationToken(clientId, clientSecret);
+
+//       if (!tokenResult.success) {
+//         return res.status(400).json({
+//           success: false,
+//           message: 'Failed to generate PAN verification token',
+//           details: tokenResult.details,
+//         });
+//       }
+
+//       const { token, verification_id } = tokenResult;
+
+//       // Create form data for the third-party API
+//       const formData = new FormData();
+//       formData.append('front_image', req.file.buffer, { filename: 'front_image.jpg' }); // Specify a filename
+//       formData.append('verification_id', verification_id);
+//       formData.append('clientid', clientId);
+//       formData.append('token', token);
+//       formData.append('pipe', '2');
+
+//       // Make the HTTP POST request to the third-party API
+//       const response = await axios.post(
+//         'https://paytelverify.com/PaytelVerifySuite/verification/api/v1/pan/panocr',
+//         formData,
+//         {
+//           headers: {
+//             ...formData.getHeaders(),
+//             // No need to set 'Content-Type' separately; 'form-data' library handles it
+//           },
+//         }
+//       );
+
+  
+//       // Handle the response
+//       if (response.status === 200 && response.data.valid === 'true') {
+//         // ... (rest of your code)
+//         res.status(200).json({
+//           success: true,
+//           message: 'PAN verification successful',
+//           data: response.data,
+//         });
+//       } else {
+//         // ... (rest of your code)
+//         res.status(400).json({
+//           success: false,
+//           message: 'PAN verification failed',
+//           data: response.data,
+//         });
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error in verifyPanWithOCR:', error.message);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Error in verifyPanWithOCR',
+//       error: error.message,
+//     });
+//   }
+// };
+
+
 exports.verifyPanWithOCR = async function (req, res) {
   try {
+    const { player_id } = req.body; // Assuming player_id is provided in the request body
+
+    // Ensure player_id is provided
+    if (!player_id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Player ID is required.',
+      });
+    }
+
     const clientId = 'PAYTEL123456';
     const clientSecret = '4444';
 
@@ -2625,17 +2729,18 @@ exports.verifyPanWithOCR = async function (req, res) {
         }
       );
 
-  
       // Handle the response
       if (response.status === 200 && response.data.valid === 'true') {
-        // ... (rest of your code)
+        // Update is_pan_kyc field in players table for the specified player
+        await Players.updateOne({ _id: player_id }, { is_pan_kyc: true });
+
+        // Send response
         res.status(200).json({
           success: true,
-          message: 'PAN verification successful',
+          message: 'PAN verification successful and is_pan_kyc field updated',
           data: response.data,
         });
       } else {
-        // ... (rest of your code)
         res.status(400).json({
           success: false,
           message: 'PAN verification failed',
