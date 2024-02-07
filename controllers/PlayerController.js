@@ -2970,14 +2970,14 @@ exports.updateAdhaarKYC = async function (req, res) {
 
     return res.status(200).json({
       success: true,
-      message: 'is_pan_kyc field updated successfully.',
+      message: 'is_adhar_kyc field updated successfully.',
       player: updatedPlayer,
     });
   } catch (error) {
-    console.error('Error updating is_pan_kyc field:', error.message);
+    console.error('Error updating is_adhar_kyc field:', error.message);
     return res.status(500).json({
       success: false,
-      message: 'Error updating is_pan_kyc field',
+      message: 'Error updating is_adhar_kyc field',
       error: error.message,
     });
   }
