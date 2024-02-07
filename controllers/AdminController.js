@@ -761,9 +761,9 @@ exports.addWithdrawRequestList = async function (req, res) {
 exports.getWithdrawRequestList = async function (req, res) {
   try {
     // Fetch withdrawal requests and populate player details
-    const withdrawalRequests = await Withdraw.find()
-      .populate('player_id', 'playerId playerName email') // Add fields you want to retrieve for the player
-      .exec();
+    const withdrawalRequests = await WithdrawDetails.find()
+      // .populate('player_id', 'playerId playerName email') // Add fields you want to retrieve for the player
+      // .exec();
 
     // Your logic to filter, process, or modify the withdrawal requests goes here
 
