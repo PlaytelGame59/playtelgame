@@ -3066,3 +3066,33 @@ exports.getAllNotification = async function (req, res) {
   }
 };
 
+// send otp
+
+exports.sendOtp = async function (req, res) {
+  try {
+    const { mobile } = req.body; // Assuming mobile number is provided in the request body
+
+    // Validate mobile number
+    if (!mobile || isNaN(mobile) || mobile.toString().length !== 10) {
+      return res.status(400).json({ message: 'Invalid mobile number' });
+    }
+
+    // Generate random OTP
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    // Construct URL for sending OTP via SMS
+    const url = `http://msg.pwasms.com/app/smsapi/index.php?key=4651FA6D90B1FF&campaign=0&routeid=9&type=text&contacts=${mobile}&senderid=SPTSMS&msg=Your%20otp%20is%20${otp}%20SELECTIAL&template_id=1707166619134631839`;
+
+    // Send HTTP GET request to send OTP
+    const response = await axios.get(url);
+
+    // Store OTP and mobile number in session (assuming you have session management middleware)
+    req.session.otp = otp;
+    req.session.phone = mobile;
+
+    return res.status(200).json({ message: 'OTP sent successfully' });
+  } catch (error) {
+    console.error('Error sending OTP:', error.message);
+    return res.status(500).json({ message: 'Failed to send OTP' });
+  }
+};
