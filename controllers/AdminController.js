@@ -721,7 +721,7 @@ exports.addWithdrawRequestList = async function (req, res) {
     // Validate and process the playerId and amount as needed
 
     // Example: Find the player by playerId to associate with the withdrawal request
-    const player = await Player.findById(playerId);
+    const player = await Players.findById(playerId);
     if (!player) {
       return res.status(404).json({
         success: false,

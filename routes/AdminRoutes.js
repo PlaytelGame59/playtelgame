@@ -37,6 +37,7 @@ router.get('/adhar-pan-list', adminController.getAllAdharPanKycList);
 router.get('/active/player', adminController.getActivePlayers);
 
 router.post('/approve-reject-withdrawrequest', adminController.processWithdrawalRequest);
+router.get('/get-withdraw-list', adminController.getWithdrawRequestList);
 router.post('/accept-reject-pan-kyc', adminController.updatePanKYCStatus);
 
 module.exports = router;
