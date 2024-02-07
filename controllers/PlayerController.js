@@ -2732,7 +2732,7 @@ exports.verifyPanWithOCR = async function (req, res) {
       // Handle the response
       if (response.status === 200 && response.data.valid === 'true') {
         // Update is_pan_kyc field in players table for the specified player
-        await Players.updateOne({ _id: player_id }, { is_pan_kyc: true });
+        await Player.updateOne({ _id: player_id }, { is_pan_kyc: true });
 
         // Send response
         res.status(200).json({
@@ -2757,6 +2757,7 @@ exports.verifyPanWithOCR = async function (req, res) {
     });
   }
 };
+
 
 // ************************* end of pan card upload and verification ************************* 
 
