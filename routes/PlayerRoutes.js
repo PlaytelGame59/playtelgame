@@ -37,5 +37,7 @@ router.post('/verify-pan-ocr', playerController.verifyPanWithOCR);
 // router.post('/get-adhaar-token', playerController.generateAdharVerificationToken);
 router.post('/verify-adhaar-ocr', playerController.verifyAadharWithOCR);
 router.post('/send-otp', playerController.sendOtp);
+router.post('/update-pan-kyc', playerController.updatePanKYC);
+router.post('/update-adhar-kyc', playerController.updateAdhaarKYC);
 
 module.exports = router;
