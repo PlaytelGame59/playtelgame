@@ -3074,25 +3074,26 @@ exports.sendOtp = async function (req, res) {
 
     // Validate mobile number
     if (!mobile || isNaN(mobile) || mobile.toString().length !== 10) {
-      return res.status(400).json({ message: 'Invalid mobile number' });
+      return res.status(400).json({ success: false, message: 'Invalid mobile number format. Please provide a 10-digit mobile number.' });
     }
 
     // Generate random OTP
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    const otp = Math.floor(1000 + Math.random() * 9000); // Generate 4-digit OTP
 
-    // Construct URL for sending OTP via SMS
+    // Construct URL for sending OTP via third-party API
     const url = `http://msg.pwasms.com/app/smsapi/index.php?key=4651FA6D90B1FF&campaign=0&routeid=9&type=text&contacts=${mobile}&senderid=SPTSMS&msg=Your%20otp%20is%20${otp}%20SELECTIAL&template_id=1707166619134631839`;
 
-    // Send HTTP GET request to send OTP
+    // Send HTTP GET request to send OTP via third-party API
     const response = await axios.get(url);
 
-    // Store OTP and mobile number in session (assuming you have session management middleware)
-    req.session.otp = otp;
-    req.session.phone = mobile;
-
-    return res.status(200).json({ message: 'OTP sent successfully' });
+    // Check if the request was successful
+    if (response.status === 200) {
+      return res.status(200).json({ success: true, right_otp: otp });
+    } else {
+      return res.status(500).json({ success: false, message: 'Failed to send OTP' });
+    }
   } catch (error) {
     console.error('Error sending OTP:', error.message);
-    return res.status(500).json({ message: 'Failed to send OTP' });
+    return res.status(500).json({ success: false, message: 'Failed to send OTP' });
   }
 };
