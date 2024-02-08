@@ -553,9 +553,7 @@ exports.updateBanned = async function (req, res) {
 // banned player
 exports.getBannedPlayers = async function (req, res) {
   try {
-    const bannedPlayers = await Players.find({
-      is_banned: 1
-    }); // Fetch players where isBanned is 1 (true).
+    const bannedPlayers = await Players.find({ is_banned: true }).select('first_name email mobile player_image'); // Fetch players where isBanned is 1 (true) and select only the specified fields.
 
     return res.status(200).json({
       success: true,

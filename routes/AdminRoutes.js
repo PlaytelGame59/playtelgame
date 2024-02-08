@@ -40,4 +40,6 @@ router.post('/approve-reject-withdrawrequest', adminController.processWithdrawal
 router.get('/get-withdraw-list', adminController.getWithdrawRequestList);
 router.post('/accept-reject-pan-kyc', adminController.updatePanKYCStatus);
 
+router.get('/get-banned-players', adminController.getBannedPlayers);
+
 module.exports = router;
