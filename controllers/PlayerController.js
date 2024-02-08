@@ -259,6 +259,39 @@ exports.addPlayerImage = async function (req, res) {
 //   }
 // };
 
+// exports.getPlayerProfileImage = async function (req, res) {
+//   try {
+//     const { player_id } = req.body;
+
+//     // Find player by player_id and select only the profile_image field
+//     const player = await Players.findById(player_id).select('player_image');
+
+//     if (!player) {
+//       return res.status(200).json({
+//         success: false,
+//         message: 'Player not found.'
+//       });
+//     }
+
+//     // Extract the file name from the player_image path
+//     const fileName = player.player_image.replace(/^.*[\\/]/, '');
+
+//     // Send the file name in the response
+//     res.status(200).json({
+//       success: true,
+//       player_image: fileName
+//     });
+//   } catch (error) {
+//     console.error('Error fetching profile image:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch player profile image.',
+//       error: error.message
+//     });
+//   }
+// };
+
+
 exports.getPlayerProfileImage = async function (req, res) {
   try {
     const { player_id } = req.body;
@@ -276,10 +309,16 @@ exports.getPlayerProfileImage = async function (req, res) {
     // Extract the file name from the player_image path
     const fileName = player.player_image.replace(/^.*[\\/]/, '');
 
-    // Send the file name in the response
+    // Get the base URL of your server
+    const baseURL = req.protocol + '://' + req.get('host');
+
+    // Construct the full URL of the player image
+    const imageURL = baseURL + '/playerImage/' + fileName;
+
+    // Send the full image URL in the response
     res.status(200).json({
       success: true,
-      player_image: fileName
+      player_image: imageURL
     });
   } catch (error) {
     console.error('Error fetching profile image:', error);
