@@ -42,5 +42,6 @@ router.post('/accept-reject-pan-kyc', adminController.updatePanKYCStatus);
 
 router.get('/get-banned-players', adminController.getBannedPlayers);
 router.post('/get-all-transaction', adminController.getPlayersAllTransaction);
+router.get('/players-detailed-report', adminController.playersDetailedReport);
 
 module.exports = router;

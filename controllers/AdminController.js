@@ -707,6 +707,28 @@ exports.addAmount = async function (req, res) {
   }
 };
 
+
+//**************** get player detailed report *****************
+exports.playersDetailedReport = async function (req, res) {
+  try {
+    const detailedReport = await Players.find().select('first_name email mobile player_image wallet_amount winning_amount bonus_ammountjoin_code referral_code is_pan_kyc is_adhar_kyc'); 
+
+    return res.status(200).json({
+      success: true,
+      message: 'players detailed report retrieved successfully.',
+      detailedReport,
+    });
+  } catch (error) {
+    console.error('Error fetching players detailed report:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch players detailed report.',
+      error: error.message,
+    });
+  }
+}
+
+
 // withdraw module <----------------------->
 
 exports.addWithdrawRequestList = async function (req, res) {
