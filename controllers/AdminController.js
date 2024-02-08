@@ -8,8 +8,8 @@ const configMulter = require('../configMulter')
 const multer = require('multer');
 const Players = require('../models/Players');
 const WithdrawDetails = require('../models/WithdrawDetails');
-const Transaction = require('../models/TransactionModel')
-const Wallet = require('../models/WalletHistory');
+// const Transaction = require('../models/TransactionModel');
+const WalletHistory = require('../models/WalletHistory');
 const Notice = require('../models/Notice');
 const AdharKYC = require('../models/AdharKYC');
 const PanKYC = require('../models/PanKYC');
@@ -652,23 +652,23 @@ exports.addNotification = async function (req, res) {
 
 
 // Transaction module <----------------------->
-exports.getTransaction = async function (req, res) {
-  try {
-    // Fetch all tournament from the database
-    const transaction = await Transaction.find();
-    // Respond with the list of tournament
-    res.status(200).json({
-      msg: 'sucessfull',
-      transaction
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      message: 'Internal Server Error',
-      error
-    });
-  }
-}
+// exports.getTransaction = async function (req, res) {
+//   try {
+//     // Fetch all tournament from the database
+//     const transaction = await Transaction.find();
+//     // Respond with the list of tournament
+//     res.status(200).json({
+//       msg: 'sucessfull',
+//       transaction
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({
+//       message: 'Internal Server Error',
+//       error
+//     });
+//   }
+// }
 
 // wallet module <----------------------->
 // add_amount
@@ -759,13 +759,43 @@ exports.addWithdrawRequestList = async function (req, res) {
 exports.getWithdrawRequestList = async function (req, res) {
   try {
     // Fetch all WithdrawDetails from the database
-    const withdrawDetails = await WithdrawDetails.find();
-
+    const withdrawDetails = await WithdrawDetails.find().populate({
+      path: 'player_id',
+      select: 'first_name wallet_amount' // Specify the fields you want to select from the Players collection
+    });
     // Respond with the list of WithdrawDetails
     res.status(200).json({
       success: true,
       message: 'Successfully fetched withdrawal requests',
       data: withdrawDetails
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message
+    });
+  }
+}
+
+
+exports.getPlayersAllTransaction = async function (req, res) {
+  try {
+    const { player_id } = req.body; // Assuming player_id is provided in the request body
+
+    // Fetch WithdrawDetails for the provided player_id and populate the player details
+    const walletHistory = await WalletHistory
+    .find({ player_id }).populate({
+      path: 'player_id',
+      select: 'first_name' // Specify the fields you want to select from the Players collection
+    });
+
+    // Respond with the list of WithdrawDetails
+    res.status(200).json({
+      success: true,
+      message: 'Successfully fetched wallet History',
+      data: walletHistory
     });
   } catch (error) {
     console.error(error);
