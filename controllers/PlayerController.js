@@ -937,35 +937,6 @@ exports.changeFriendStatus = async function (req, res) {
 };
 
 // // API endpoint for getting friends list
-// exports.getFriendsList = async function (req, res) {
-//     try {
-//       const { user_id, email } = req.body;
-
-//       // Find the user by either user_id or email
-//       const user = await UserModel.findOne({
-//         $or: [{ _id: user_id }, { email }],
-//       });
-
-//       if (!user) {
-//         return res
-//           .status(200)
-//           .json({ success: false, message: "User not found" });
-//       }
-
-//       // Get the list of friend IDs
-//       const friendIds = user.friends;
-
-//       // Find friends using the list of friend IDs
-//       const friends = await UserModel.find({ _id: { $in: friendIds } });
-
-//       res.status(200).json({ success: true, friends });
-//     } catch (error) {
-//       console.error(error);
-//       res.status(500).json({ success: false, message: "Internal Server Error" });
-//     }
-// };
-
-
 
 // exports.getleaderboard = async function (req, res) {
 //   try {
@@ -991,9 +962,25 @@ exports.changeFriendStatus = async function (req, res) {
 //       }
 //     ]);
 
+//     const playerIds = aggregatedResults.map(result => result.player_id);
+
+//     // Fetch player names from the Player collection
+//     const players = await Players.find({ _id: { $in: playerIds } }, { _id: 1, first_name: 1, mobile: 1 });
+
+//     // Map player names to the aggregated results
+//     const leaderboardWithNames = aggregatedResults.map(result => {
+//       const playerInfo = players.find(player => player._id.equals(result.player_id));
+//       return {
+//         player_id: result.player_id,
+//         totalAmount: result.totalAmount,
+//         player_name: playerInfo ? playerInfo.first_name : 'Unknown',
+//         mobile_no: playerInfo ? playerInfo.mobile : 'not provided'
+//       };
+//     });
+
 //     return res.status(200).json({
 //       success: true,
-//       playerHistory: aggregatedResults
+//       playerHistory: leaderboardWithNames
 //     });
 //   } catch (error) {
 //     console.error('Error fetching player history:', error);
@@ -1004,6 +991,7 @@ exports.changeFriendStatus = async function (req, res) {
 //     });
 //   }
 // };
+
 
 exports.getleaderboard = async function (req, res) {
   try {
@@ -1035,7 +1023,7 @@ exports.getleaderboard = async function (req, res) {
     const players = await Players.find({ _id: { $in: playerIds } }, { _id: 1, first_name: 1, mobile: 1 });
 
     // Map player names to the aggregated results
-    const leaderboardWithNames = aggregatedResults.map(result => {
+    let leaderboardWithNames = aggregatedResults.map(result => {
       const playerInfo = players.find(player => player._id.equals(result.player_id));
       return {
         player_id: result.player_id,
@@ -1044,6 +1032,9 @@ exports.getleaderboard = async function (req, res) {
         mobile_no: playerInfo ? playerInfo.mobile : 'not provided'
       };
     });
+
+    // Sort leaderboardWithNames array by totalAmount in descending order
+    leaderboardWithNames.sort((a, b) => b.totalAmount - a.totalAmount);
 
     return res.status(200).json({
       success: true,
@@ -1058,6 +1049,7 @@ exports.getleaderboard = async function (req, res) {
     });
   }
 };
+
 
 //  // Function to calculate prizes based on your logic
 // function calculatePrizes(topUsers) {
