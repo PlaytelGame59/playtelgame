@@ -1,5 +1,5 @@
 const Admin = require('../models/Admin');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const Tournament = require("../models/tournament");
 const Disclaimer = require('../models/Disclaimer');
@@ -62,39 +62,66 @@ exports.signUp = async function (req, res) {
     });
   }
 }
+
+// exports.login = async function (req, res) {
+//   const {
+//     email,
+//     password
+//   } = req.body;
+
+//   const user = await Admin.findOne({
+//     email
+//   });
+
+//   if (!user) {
+//     return res.status(401).json({
+//       msg: 'Invalid credentials'
+//     });
+//   }
+
+//   const isPasswordValid = await bcrypt.compare(password, user.password);
+
+//   if (isPasswordValid) {
+//     const token = jwt.sign({
+//       userId: user._id
+//     }, process.env.JWT_SECRET);
+//     return res.json({
+//       msg: 'Login successful',
+//       token,
+//       userId: user._id
+//     });
+//   } else {
+//     return res.status(401).json({
+//       msg: 'Invalid credentials'
+//     });
+//   }
+// };
+
+
 exports.login = async function (req, res) {
-  const {
-    email,
-    password
-  } = req.body;
+  const { email, password } = req.body;
 
-  const user = await Admin.findOne({
-    email
-  });
+  try {
+    const user = await Admin.findOne({ email });
 
-  if (!user) {
-    return res.status(401).json({
-      msg: 'Invalid credentials'
-    });
-  }
+    if (!user) {
+      return res.status(401).json({ msg: 'Invalid credentials' });
+    }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
-  if (isPasswordValid) {
-    const token = jwt.sign({
-      userId: user._id
-    }, process.env.JWT_SECRET);
-    return res.json({
-      msg: 'Login successful',
-      token,
-      userId: user._id
-    });
-  } else {
-    return res.status(401).json({
-      msg: 'Invalid credentials'
-    });
+    if (isPasswordValid) {
+      const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+      return res.json({ msg: 'Login successful', token, userId: user._id });
+    } else {
+      return res.status(401).json({ msg: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ msg: 'Internal server error' });
   }
 };
+
 exports.resetPassword = async function (req, res) {
   const {
     userId,
