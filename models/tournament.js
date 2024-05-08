@@ -48,6 +48,9 @@ const TournamentSchema = mongoose.Schema({
     tournamentStatus: {
         type: String
     },
+    move_count: {
+        type: String   
+    }
 }, {
     collection: 'tournaments',
     timestamps: true

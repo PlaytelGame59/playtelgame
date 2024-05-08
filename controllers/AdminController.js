@@ -146,6 +146,7 @@ exports.addTorunment = async function (req, res) {
       winningAmount3,
       tournamentInterval,
       tournamentType,
+      move_count,
       tournamentStatus
     } = req.body;
 
@@ -178,6 +179,7 @@ exports.addTorunment = async function (req, res) {
       winningAmount3,
       tournamentInterval,
       tournamentType,
+      move_count,
       tournamentStatus
     });
 
@@ -231,6 +233,7 @@ exports.updateTournament = async function (req, res) {
       winningAmount3,
       tournamentInterval,
       tournamentType,
+      move_count,
       tournamentStatus
     } = req.body;
 
@@ -266,6 +269,7 @@ exports.updateTournament = async function (req, res) {
       if (winningAmount3) updateFields.winningAmount3 = winningAmount3;
       if (tournamentInterval) updateFields.tournamentInterval = tournamentInterval;
       if (tournamentType) updateFields.tournamentType = tournamentType;
+      if (move_count) updateFields.move_count = move_count;
       if (tournamentStatus) updateFields.tournamentStatus = tournamentStatus;
 
       // Update only the specified fields using $set operator
