@@ -685,6 +685,37 @@ function initializeSocketIO(io) {
       });
     });
 
+    // ***************************************************************************
+    
+    // socket.on("set_start_timer", (data) => {
+    //   const { room_code, time } = data;
+    
+    //   if (!chatRooms[room_code]) {
+    //     socket.emit("set_start_timer_failed", {
+    //       room_code: room_code,
+    //       time: time,
+    //       message: "Failed to set start timer. Room does not exist.",
+    //     });
+    //     return;
+    //   }
+    // });
+
+    socket.on("set_start_timer", (data) => {
+      const { room_code, time } = data;
+    
+      if (!chatRooms[room_code]) {
+        socket.emit("set_start_timer_failed", {
+          room_code: room_code,
+          time: time,
+          message: "Failed to set start timer. Room does not exist.",
+        });
+        return;
+      }
+    
+      // Emit an event to start the timer in the specified room
+      io.to(room_code).emit("on_set_start_timer", { time: time });
+    });
+    
 
     //****************************** handle disconnection ******************************
     // Handle disconnection
@@ -693,6 +724,8 @@ function initializeSocketIO(io) {
     });
   });
 }
+
+
 
 module.exports = {
   initializeSocketIO,
