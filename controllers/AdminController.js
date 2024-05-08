@@ -134,104 +134,104 @@ exports.resetPassword = async function (req, res) {
 };
 
 
-// exports.addTorunment = async function (req, res) {
-//   try {
-//     const {
-//       tournamentName,
-//       betAmount,
-//       noPlayers,
-//       winningAmount,
-//       winningAmount1,
-//       winningAmount2,
-//       winningAmount3,
-//       tournamentInterval,
-//       tournamentType,
-//       move_count,
-//       tournamentStatus
-//     } = req.body;
-
-//     // Parse noPlayers as an integer before comparison
-//     const parsedNoPlayers = parseInt(noPlayers);
-
-//     // Set winnerCount based on noPlayers
-//     let winnerCount;
-//     if (parsedNoPlayers === 2 || parsedNoPlayers === 3) {
-//       winnerCount = 1;
-//     } else if (parsedNoPlayers === 4) {
-//       winnerCount = 3;
-//     } else {
-//       // Handle other values if needed
-//       winnerCount = 0; // Default value
-//     }
-
-//     console.log("noPlayers:", parsedNoPlayers);
-//     console.log("winnerCount:", winnerCount);
-
-//     // Create a new instance of the TournamentModel
-//     const newTournament = new Tournament({
-//       tournamentName,
-//       betAmount,
-//       noPlayers,
-//       winningAmount,
-//       winnerCount,
-//       winningAmount1,
-//       winningAmount2,
-//       winningAmount3,
-//       tournamentInterval,
-//       tournamentType,
-//       move_count,
-//       tournamentStatus
-//     });
-
-//     // Save the new tournament to the database
-//     const savedTournament = await newTournament.save();
-
-//     // Respond with the saved tournament data
-//     res.status(201).json({
-//       msg: "add tournament data successfuly",
-//       savedTournament,
-//       status: "success"
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({
-//       message: 'Internal Server Error'
-//     });
-//   }
-// }
-
 exports.addTournament = async function (req, res) {
   try {
-    const { tournamentName, betAmount, noPlayers, winnerCount, winningAmount1, winningAmount2, winningAmount3, tournament_interval, move_count } = req.body;
+    const {
+      tournamentName,
+      betAmount,
+      noPlayers,
+      winningAmount,
+      winningAmount1,
+      winningAmount2,
+      winningAmount3,
+      tournamentInterval,
+      tournamentType,
+      move_count,
+      tournamentStatus
+    } = req.body;
 
+    // Parse noPlayers as an integer before comparison
+    const parsedNoPlayers = parseInt(noPlayers);
+
+    // Set winnerCount based on noPlayers
+    let winnerCount;
+    if (parsedNoPlayers === 2 || parsedNoPlayers === 3) {
+      winnerCount = 1;
+    } else if (parsedNoPlayers === 4) {
+      winnerCount = 3;
+    } else {
+      // Handle other values if needed
+      winnerCount = 0; // Default value
+    }
+
+    console.log("noPlayers:", parsedNoPlayers);
+    console.log("winnerCount:", winnerCount);
+
+    // Create a new instance of the TournamentModel
     const newTournament = new Tournament({
       tournamentName,
       betAmount,
       noPlayers,
+      winningAmount,
       winnerCount,
       winningAmount1,
       winningAmount2,
       winningAmount3,
-      tournament_interval,
-      move_count
+      tournamentInterval,
+      tournamentType,
+      move_count,
+      tournamentStatus
     });
 
+    // Save the new tournament to the database
     const savedTournament = await newTournament.save();
 
+    // Respond with the saved tournament data
     res.status(201).json({
-      success: true,
-      message: 'Tournament added successfully',
-      data: savedTournament
+      msg: "add tournament data successfuly",
+      savedTournament,
+      status: "success"
     });
   } catch (error) {
-    console.error('Error adding tournament:', error);
+    console.error(error);
     res.status(500).json({
-      success: false,
-      message: 'Failed to add tournament.',
-      error: error.message
+      message: 'Internal Server Error'
     });
   }
-};
+}
+
+// exports.addTournament = async function (req, res) {
+//   try {
+//     const { tournamentName, betAmount, noPlayers, winnerCount, winningAmount1, winningAmount2, winningAmount3, tournament_interval, move_count } = req.body;
+
+//     const newTournament = new Tournament({
+//       tournamentName,
+//       betAmount,
+//       noPlayers,
+//       winnerCount,
+//       winningAmount1,
+//       winningAmount2,
+//       winningAmount3,
+//       tournament_interval,
+//       move_count
+//     });
+
+//     const savedTournament = await newTournament.save();
+
+//     res.status(201).json({
+//       success: true,
+//       message: 'Tournament added successfully',
+//       data: savedTournament
+//     });
+//   } catch (error) {
+//     console.error('Error adding tournament:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to add tournament.',
+//       error: error.message
+//     });
+//   }
+// };
 
 
 exports.getTorunment = async function (req, res) {
