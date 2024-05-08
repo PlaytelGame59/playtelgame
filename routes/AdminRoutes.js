@@ -9,7 +9,7 @@ router.post('/login', adminController.login);
 router.post('/reset-password', adminController.resetPassword)
 
 // tournament module 
-router.post('/add-tournament', adminController.addTorunment)
+router.post('/add-tournament', adminController.addTournament)
 router.get('/tournaments-list', adminController.getTorunment);
 router.post('/update-tournament', adminController.updateTournament)
 router.post('/delete-tournaments-data', adminController.deleteTorunment);

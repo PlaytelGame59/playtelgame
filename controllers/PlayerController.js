@@ -2285,6 +2285,38 @@ exports.getTournamentDetails = async function (req, res) {
   }
 };
 
+// exports.getTournamentList = async function (req, res) {
+//   try {
+//     const tournaments = await Tournament.find({});
+
+//     const formattedTournaments = tournaments.map(tournament => ({
+//       id: tournament._id,
+//       tournament_name: tournament.tournamentName,
+//       bet_amount: tournament.betAmount,
+//       no_players: tournament.noPlayers,
+//       no_of_winners: tournament.winnerCount,
+//       tournament_interval: tournament.tournament_interval,
+//       four_player_winning_1: tournament.winningAmount1,
+//       four_player_winning_2: tournament.winningAmount2,
+//       four_player_winning_3: tournament.winningAmount3,
+//       two_player_winning: tournament.winningAmount, // Adjust this based on your schema
+//       move_count: tournament.move_count
+//     }));
+
+//     res.status(200).json({
+//       success: true,
+//       data: formattedTournaments
+//     });
+//   } catch (error) {
+//     console.error('Error fetching tournaments:', error);
+//     res.status(500).json({
+//       success: false,
+//       message: 'Failed to fetch tournaments.',
+//       error: error.message
+//     });
+//   }
+// };
+
 exports.getTournamentList = async function (req, res) {
   try {
     const tournaments = await Tournament.find({});
@@ -2295,12 +2327,12 @@ exports.getTournamentList = async function (req, res) {
       bet_amount: tournament.betAmount,
       no_players: tournament.noPlayers,
       no_of_winners: tournament.winnerCount,
-      tournament_interval: tournament.tournament_interval,
+      tournament_interval: tournament.tournamentInterval, // Adjust this based on your schema
       four_player_winning_1: tournament.winningAmount1,
       four_player_winning_2: tournament.winningAmount2,
       four_player_winning_3: tournament.winningAmount3,
       two_player_winning: tournament.winningAmount, // Adjust this based on your schema
-      move_count: tournament.move_count
+      move_count: tournament.move_count // Adjust this based on your schema
     }));
 
     res.status(200).json({
@@ -2316,6 +2348,7 @@ exports.getTournamentList = async function (req, res) {
     });
   }
 };
+
 
 // refund tournament Amount
 exports.refundTournamentAmount = async function (req, res) {
