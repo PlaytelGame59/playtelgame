@@ -2327,11 +2327,13 @@ exports.getTournamentList = async function (req, res) {
       bet_amount: tournament.betAmount,
       no_players: tournament.noPlayers,
       no_of_winners: tournament.winnerCount,
-      tournament_interval: tournament.tournamentInterval, // Adjust this based on your schema
+      tournamentInterval: tournament.tournamentInterval,
       four_player_winning_1: tournament.winningAmount1,
       four_player_winning_2: tournament.winningAmount2,
       four_player_winning_3: tournament.winningAmount3,
       two_player_winning: tournament.winningAmount, // Adjust this based on your schema
+      tournamentType: tournament.tournamentType,
+      tournamentStatus: tournament.tournamentStatus,
       move_count: tournament.move_count // Adjust this based on your schema
     }));
 
