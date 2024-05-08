@@ -2299,7 +2299,8 @@ exports.getTournamentList = async function (req, res) {
       four_player_winning_1: tournament.winningAmount1,
       four_player_winning_2: tournament.winningAmount2,
       four_player_winning_3: tournament.winningAmount3,
-      two_player_winning: tournament.winningAmount // Adjust this based on your schema
+      two_player_winning: tournament.winningAmount, // Adjust this based on your schema
+      move_count: tournament.move_count
     }));
 
     res.status(200).json({
